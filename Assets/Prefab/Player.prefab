@@ -330,6 +330,7 @@ GameObject:
   - component: {fileID: 860417726882554911}
   - component: {fileID: 7190523738204106312}
   - component: {fileID: 310338494093207351}
+  - component: {fileID: 6174943290513702248}
   - component: {fileID: 6483334918985044414}
   - component: {fileID: 4979418807090561806}
   - component: {fileID: 8256697509862863342}
@@ -487,20 +488,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7d82ad339b2cd142be12b77b394f1d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleThirdPersonController
+  walkSpeed: 2
+  sprintSpeed: 3.5
+  rotationSpeed: 200
+  gravity: -20
+--- !u!114 &6174943290513702248
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561159034712416572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63f74e97d42b49b09f38c8320f7104b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCameraController
   cameraTransform: {fileID: 2701248297201339637}
   visualRoot: {fileID: 5090013681713475650}
-  walkSpeed: 3.5
-  sprintSpeed: 6.5
-  rotationSpeed: 720
-  gravity: -20
-  cameraDistance: 2
+  cameraDistance: 1
   cameraTargetHeight: 0.5
-  cameraHorizontalOffset: 0
+  cameraHorizontalOffset: 0.2
+  followSmoothTime: 0
+  movementSwayAngle: 0.5
+  movementSwayFrequency: 0.2
   mouseSensitivity: 0.15
   gamepadLookSensitivity: 180
   initialCameraPitch: 15
   minCameraPitch: -15
-  maxCameraPitch: 65
+  maxCameraPitch: 15
 --- !u!114 &6483334918985044414
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -403,7 +403,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 450461142}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3e22ea532afa81b4c840b540a0452e27, type: 3}
   m_Name: 
@@ -1345,34 +1345,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 310338494093207351, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: walkSpeed
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 310338494093207351, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: sprintSpeed
-      value: 3.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 310338494093207351, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: rotationSpeed
-      value: 200
-      objectReference: {fileID: 0}
-    - target: {fileID: 310338494093207351, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: cameraDistance
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 310338494093207351, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: maxCameraPitch
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 310338494093207351, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: cameraTargetHeight
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 310338494093207351, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: cameraHorizontalOffset
-      value: 0.21
-      objectReference: {fileID: 0}
     - target: {fileID: 1561159034712416572, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
       propertyPath: m_Name
       value: Player
