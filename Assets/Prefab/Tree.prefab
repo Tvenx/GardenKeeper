@@ -156,8 +156,10 @@ MonoBehaviour:
   hasEverBeenInfected: 0
   isCurrentlyInfected: 0
   isBleeding: 0
-  bleedingCheckInterval: 10
+  bleedingCheckInterval: 20
   bleedingChancePercent: 10
+  bleedingChanceIncreasePerFailedCheck: 20
+  guaranteedBleedingAfterChecks: 5
 --- !u!114 &-2203662733030067614
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -29,6 +29,9 @@ public class PlayerInventory : MonoBehaviour
         ? Mathf.Max(0f, candleTimeRemaining)
         : 0f;
 
+    public float CandleBurnDuration =>
+        Mathf.Max(0.1f, candleBurnDuration);
+
     private void Awake()
     {
         RefreshHeldVisual();
