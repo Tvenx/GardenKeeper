@@ -962,6 +962,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf08f8c4d860f1944ba2acb4f19c3ed3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StatueCandleStation
+--- !u!114 &1190470140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 309154875}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde23d43a4680b1468b7a1efbc77b7c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldInteractionPrompt
 --- !u!1001 &1319134923
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1458,7 +1470,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7464767517755861951, guid: 765475af9abd60a4c82919701b249985, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1190470140}
   m_SourcePrefab: {fileID: 100100000, guid: 765475af9abd60a4c82919701b249985, type: 3}
 --- !u!1001 &8243708789358498280
 PrefabInstance:
