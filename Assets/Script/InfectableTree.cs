@@ -29,8 +29,15 @@ public class InfectableTree : InteractableObject
     [Range(0f, 100f)]
     [SerializeField] private float bleedingChancePercent = 10f;
 
+    [Min(0f)]
+    [SerializeField] private float bleedingChanceIncreasePerFailedCheck = 20f;
+
+    [Min(1)]
+    [SerializeField] private int guaranteedBleedingAfterChecks = 5;
+
     private float bleedingTimeRemaining;
     private int infectionCycle;
+    private int failedBleedingChecks;
 
     public bool HasEverBeenInfected => hasEverBeenInfected;
     public bool IsCurrentlyInfected => isCurrentlyInfected;
@@ -105,16 +112,38 @@ public class InfectableTree : InteractableObject
             bleedingCheckInterval
         );
 
-        float chance = Mathf.Clamp(
-            bleedingChancePercent,
-            0f,
-            100f
-        );
+        float chance = GetBleedingChanceForNextCheck();
 
-        if (Random.Range(0f, 100f) < chance)
+        if (chance >= 100f || Random.Range(0f, 100f) < chance)
         {
             StartBleeding();
         }
+        else
+        {
+            failedBleedingChecks = Mathf.Min(
+                failedBleedingChecks + 1,
+                Mathf.Max(0, guaranteedBleedingAfterChecks - 1)
+            );
+        }
+    }
+
+    private float GetBleedingChanceForNextCheck()
+    {
+        int checksUntilGuarantee = Mathf.Max(
+            1,
+            guaranteedBleedingAfterChecks
+        );
+
+        if (failedBleedingChecks >= checksUntilGuarantee - 1)
+        {
+            return 100f;
+        }
+
+        float chance = bleedingChancePercent +
+                       failedBleedingChecks *
+                       Mathf.Max(0f, bleedingChanceIncreasePerFailedCheck);
+
+        return Mathf.Clamp(chance, 0f, 100f);
     }
 
     private void RefreshVisuals()
@@ -185,6 +214,7 @@ public class InfectableTree : InteractableObject
         }
 
         isBleeding = true;
+        failedBleedingChecks = 0;
 
         // The countdown pauses at its current value.
         RefreshVisuals();
