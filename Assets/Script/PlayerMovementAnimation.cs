@@ -23,8 +23,10 @@ public class PlayerMovementAnimation : MonoBehaviour
 
     private PlayerInputComponent playerInput;
     private InputAction moveAction;
+    private InputAction sprintAction;
     private string[] directionStates;
     private string currentState;
+    private float defaultAnimatorSpeed = 1f;
 
     private void Awake()
     {
@@ -50,6 +52,10 @@ public class PlayerMovementAnimation : MonoBehaviour
                 this
             );
         }
+        else
+        {
+            defaultAnimatorSpeed = animator.speed;
+        }
 
         directionStates = new[]
         {
@@ -69,6 +75,7 @@ public class PlayerMovementAnimation : MonoBehaviour
         if (playerInput != null)
         {
             moveAction = playerInput.Move;
+            sprintAction = playerInput.Sprint;
         }
     }
 
@@ -83,6 +90,11 @@ public class PlayerMovementAnimation : MonoBehaviour
             moveAction.ReadValue<Vector2>(),
             1f
         );
+
+        bool sprinting = input.sqrMagnitude >= 0.01f &&
+                         sprintAction != null &&
+                         sprintAction.IsPressed();
+        animator.speed = defaultAnimatorSpeed * (sprinting ? 2f : 1f);
 
         if (input.sqrMagnitude < 0.01f)
         {
@@ -112,5 +124,13 @@ public class PlayerMovementAnimation : MonoBehaviour
         );
 
         currentState = stateName;
+    }
+
+    private void OnDisable()
+    {
+        if (animator != null)
+        {
+            animator.speed = defaultAnimatorSpeed;
+        }
     }
 }
