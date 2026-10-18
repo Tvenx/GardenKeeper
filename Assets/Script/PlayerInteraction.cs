@@ -1,41 +1,9 @@
 
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using PlayerInputComponent = GardenKeeper.Inputs.PlayerInput;
 
-public enum InteractionInput
-{
-    A, B, C, D, E, F, G, H, I, J, K, L, M,
-    N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
-
-    Digit0, Digit1, Digit2, Digit3, Digit4,
-    Digit5, Digit6, Digit7, Digit8, Digit9,
-
-    F1, F2, F3, F4, F5, F6,
-    F7, F8, F9, F10, F11, F12,
-
-    Space, Enter, Tab, Escape, Backspace,
-    Delete, Insert, Home, End, PageUp, PageDown,
-
-    LeftArrow, RightArrow, UpArrow, DownArrow,
-
-    LeftShift, RightShift, LeftCtrl, RightCtrl,
-    LeftAlt, RightAlt, LeftMeta, RightMeta,
-
-    CapsLock, NumLock, PrintScreen, ScrollLock, Pause,
-    ContextMenu,
-
-    Backquote, Quote, Semicolon, Comma, Period, Slash,
-    Backslash, LeftBracket, RightBracket, Minus, Equals,
-
-    Numpad0, Numpad1, Numpad2, Numpad3, Numpad4,
-    Numpad5, Numpad6, Numpad7, Numpad8, Numpad9,
-    NumpadEnter, NumpadDivide, NumpadMultiply,
-    NumpadPlus, NumpadMinus, NumpadPeriod, NumpadEquals,
-
-    MouseLeft, MouseRight, MouseMiddle
-}
-
+[RequireComponent(typeof(PlayerInputComponent))]
 public class PlayerInteraction : MonoBehaviour
 {
     [Header("References")]
@@ -44,19 +12,14 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private Transform rayOrigin;
 
     [Header("Interaction")]
-    [SerializeField]
-    private InteractionInput interactionInput =
-        InteractionInput.E;
-
     [Min(0.1f)]
     [SerializeField] private float interactionDistance = 3f;
 
     [SerializeField] private LayerMask interactionLayers = ~0;
 
     private InteractableObject currentTarget;
-    private Key selectedKeyboardKey = Key.E;
-
-
+    private PlayerInputComponent playerInput;
+    private InputAction interactAction;
 
     private GameObject lookedAtObject;
     private InteractableObject lookedAtInteractable;
@@ -66,36 +29,35 @@ public class PlayerInteraction : MonoBehaviour
     public InteractableObject LookedAtInteractable =>
         lookedAtInteractable;
 
-    public InteractionInput SelectedInteractionInput =>
-        interactionInput;
-
     public string InteractionButtonDisplayName
     {
         get
         {
-            switch (interactionInput)
+            if (playerInput == null || playerInput.Interact == null)
             {
-                case InteractionInput.MouseLeft:
-                    return "ЛКМ";
-
-                case InteractionInput.MouseRight:
-                    return "ПКМ";
-
-                case InteractionInput.MouseMiddle:
-                    return "СКМ";
-
-                default:
-                    return interactionInput.ToString();
+                return "Не назначено";
             }
+
+            InputAction action = playerInput.Interact;
+
+            if (action.activeControl != null)
+            {
+                return action.activeControl.displayName;
+            }
+
+            string displayName =
+                action.GetBindingDisplayString(
+                    group: "Keyboard&Mouse"
+                );
+
+            return string.IsNullOrEmpty(displayName)
+                ? action.GetBindingDisplayString()
+                : displayName;
         }
     }
 
-
-
     private void Awake()
     {
-        CacheSelectedKey();
-
         if (inventory == null)
         {
             inventory = GetComponent<PlayerInventory>();
@@ -122,6 +84,8 @@ public class PlayerInteraction : MonoBehaviour
             );
         }
 
+        playerInput = GetComponent<PlayerInputComponent>();
+
         if (rayOrigin == null)
         {
             Debug.LogWarning(
@@ -131,27 +95,17 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
-    private void OnValidate()
+    private void Start()
     {
-        CacheSelectedKey();
+        if (playerInput != null)
+        {
+            interactAction = playerInput.Interact;
+        }
     }
 
-    private void CacheSelectedKey()
+    private void OnDisable()
     {
-        string inputName = interactionInput.ToString();
-
-        if (inputName.StartsWith("Mouse", StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        if (!Enum.TryParse<Key>(
-            inputName,
-            true,
-            out selectedKeyboardKey))
-        {
-            selectedKeyboardKey = Key.E;
-        }
+        SetCurrentTarget(null);
     }
 
     private void Update()
@@ -178,7 +132,8 @@ public class PlayerInteraction : MonoBehaviour
 
         SetCurrentTarget(outlineTarget);
 
-        if (InteractionPressedThisFrame())
+        if (interactAction != null &&
+            interactAction.WasPressedThisFrame())
         {
             HandleInteraction(hitTarget);
 
@@ -264,35 +219,6 @@ public class PlayerInteraction : MonoBehaviour
             hitTarget.Interact(inventory);
         }
     }
-
-    private bool InteractionPressedThisFrame()
-    {
-        switch (interactionInput)
-        {
-            case InteractionInput.MouseLeft:
-                return Mouse.current != null &&
-                       Mouse.current.leftButton.wasPressedThisFrame;
-
-            case InteractionInput.MouseRight:
-                return Mouse.current != null &&
-                       Mouse.current.rightButton.wasPressedThisFrame;
-
-            case InteractionInput.MouseMiddle:
-                return Mouse.current != null &&
-                       Mouse.current.middleButton.wasPressedThisFrame;
-        }
-
-        Keyboard keyboard = Keyboard.current;
-
-        if (keyboard == null)
-        {
-            return false;
-        }
-
-        return keyboard[selectedKeyboardKey].wasPressedThisFrame;
-    }
-
-
 
     public string GetCurrentActionDescription()
     {
@@ -426,8 +352,4 @@ public class PlayerInteraction : MonoBehaviour
         Gizmos.DrawWireSphere(end, 0.15f);
     }
 
-    private void OnDisable()
-    {
-        SetCurrentTarget(null);
-    }
 }

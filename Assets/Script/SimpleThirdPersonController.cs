@@ -1,8 +1,10 @@
 
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
+using PlayerInputComponent = GardenKeeper.Inputs.PlayerInput;
 
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(CharacterController), typeof(PlayerInputComponent))]
 public class SimpleThirdPersonController : MonoBehaviour
 {
     [Header("References")]
@@ -18,7 +20,9 @@ public class SimpleThirdPersonController : MonoBehaviour
     [Header("Camera")]
     [SerializeField] private float cameraDistance = 5f;
     [SerializeField] private float cameraTargetHeight = 1.3f;
+    [SerializeField] private float cameraHorizontalOffset;
     [SerializeField] private float mouseSensitivity = 0.15f;
+    [SerializeField] private float gamepadLookSensitivity = 180f;
     [SerializeField] private float initialCameraPitch = 15f;
     [SerializeField] private float minCameraPitch = -15f;
     [SerializeField] private float maxCameraPitch = 65f;
@@ -30,6 +34,14 @@ public class SimpleThirdPersonController : MonoBehaviour
     private float verticalVelocity;
 
     private bool cursorLocked;
+
+    private PlayerInputComponent playerInput;
+    private InputAction moveAction;
+    private InputAction lookAction;
+    private InputAction sprintAction;
+    private InputAction cancelAction;
+    private InputAction cursorRelockClickAction;
+    private InputAction cursorRelockSubmitAction;
 
     private void Awake()
     {
@@ -50,22 +62,27 @@ public class SimpleThirdPersonController : MonoBehaviour
 
     private void Start()
     {
+        playerInput = GetComponent<PlayerInputComponent>();
+        moveAction = playerInput.Move;
+        lookAction = playerInput.Look;
+        sprintAction = playerInput.Sprint;
+        cancelAction = playerInput.Cancel;
+        cursorRelockClickAction = playerInput.CursorRelockClick;
+        cursorRelockSubmitAction = playerInput.CursorRelockSubmit;
+
         SetCursorLocked(true);
     }
 
     private void Update()
     {
-        Keyboard keyboard = Keyboard.current;
-        Mouse mouse = Mouse.current;
+        HandleCursorLock();
+        HandleCameraInput();
 
-        HandleCursorLock(keyboard, mouse);
-        HandleCameraInput(mouse);
+        Vector2 moveInput = moveAction != null
+            ? Vector2.ClampMagnitude(moveAction.ReadValue<Vector2>(), 1f)
+            : Vector2.zero;
 
-        Vector2 moveInput = GetMovementInput(keyboard);
-
-        bool sprinting = keyboard != null &&
-            (keyboard.leftShiftKey.isPressed ||
-             keyboard.rightShiftKey.isPressed);
+        bool sprinting = sprintAction != null && sprintAction.IsPressed();
 
         MoveCharacter(moveInput, sprinting);
     }
@@ -74,30 +91,6 @@ public class SimpleThirdPersonController : MonoBehaviour
     {
         UpdateCameraPosition();
         UpdateBillboard();
-    }
-
-    private Vector2 GetMovementInput(Keyboard keyboard)
-    {
-        if (keyboard == null)
-        {
-            return Vector2.zero;
-        }
-
-        Vector2 input = Vector2.zero;
-
-        if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed)
-            input.y += 1f;
-
-        if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed)
-            input.y -= 1f;
-
-        if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
-            input.x += 1f;
-
-        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
-            input.x -= 1f;
-
-        return Vector2.ClampMagnitude(input, 1f);
     }
 
     private void MoveCharacter(Vector2 input, bool sprinting)
@@ -147,17 +140,21 @@ public class SimpleThirdPersonController : MonoBehaviour
         }
     }
 
-    private void HandleCameraInput(Mouse mouse)
+    private void HandleCameraInput()
     {
-        if (!cursorLocked || mouse == null)
+        if (!cursorLocked || lookAction == null)
         {
             return;
         }
 
-        Vector2 mouseDelta = mouse.delta.ReadValue();
+        Vector2 lookInput = lookAction.ReadValue<Vector2>();
 
-        cameraYaw += mouseDelta.x * mouseSensitivity;
-        cameraPitch -= mouseDelta.y * mouseSensitivity;
+        float sensitivity = lookAction.activeControl is DeltaControl
+            ? mouseSensitivity
+            : gamepadLookSensitivity * Time.deltaTime;
+
+        cameraYaw += lookInput.x * sensitivity;
+        cameraPitch -= lookInput.y * sensitivity;
 
         cameraPitch = Mathf.Clamp(
             cameraPitch,
@@ -178,7 +175,8 @@ public class SimpleThirdPersonController : MonoBehaviour
 
         Vector3 targetPosition =
             transform.position +
-            Vector3.up * cameraTargetHeight;
+            Vector3.up * cameraTargetHeight +
+            cameraRotation * Vector3.right * cameraHorizontalOffset;
 
         cameraTransform.rotation = cameraRotation;
 
@@ -207,16 +205,18 @@ public class SimpleThirdPersonController : MonoBehaviour
         }
     }
 
-    private void HandleCursorLock(Keyboard keyboard, Mouse mouse)
+    private void HandleCursorLock()
     {
-        if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
+        if (cancelAction != null && cancelAction.WasPressedThisFrame())
         {
             SetCursorLocked(false);
         }
 
         if (!cursorLocked &&
-            mouse != null &&
-            mouse.leftButton.wasPressedThisFrame)
+            ((cursorRelockClickAction != null &&
+              cursorRelockClickAction.WasPressedThisFrame()) ||
+             (cursorRelockSubmitAction != null &&
+              cursorRelockSubmitAction.WasPressedThisFrame())))
         {
             SetCursorLocked(true);
         }

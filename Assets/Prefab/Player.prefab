@@ -238,6 +238,7 @@ GameObject:
   - component: {fileID: 5247811455166213698}
   - component: {fileID: 1272127808058000421}
   - component: {fileID: 860417726882554911}
+  - component: {fileID: 7190523738204106312}
   - component: {fileID: 310338494093207351}
   - component: {fileID: 6483334918985044414}
   - component: {fileID: 4979418807090561806}
@@ -394,6 +395,19 @@ MonoBehaviour:
   initialCameraPitch: 15
   minCameraPitch: -15
   maxCameraPitch: 65
+--- !u!114 &7190523738204106312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561159034712416572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b448d902632a4e069da68c6ac40e4ab1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::GardenKeeper.Inputs.PlayerInput
+  inputActions: {fileID: -944628639613478452, guid: 289c1b55c9541489481df5cc06664110, type: 3}
 --- !u!114 &6483334918985044414
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -409,7 +423,6 @@ MonoBehaviour:
   inventory: {fileID: 4979418807090561806}
   candleUse: {fileID: 0}
   rayOrigin: {fileID: 7160190649347197086}
-  interactionInput: 105
   interactionDistance: 4
   interactionLayers:
     serializedVersion: 2
