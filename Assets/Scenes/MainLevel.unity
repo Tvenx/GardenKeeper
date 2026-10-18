@@ -1640,38 +1640,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
-    - target: {fileID: 6593032239981562043, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: sprintClip
-      value: 
-      objectReference: {fileID: 8300000, guid: 52b1366c15b3f944aad451dcbbbac535, type: 3}
-    - target: {fileID: 7111111111111110002, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: m_Pivot.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7111111111111110002, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: m_Pivot.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7111111111111110002, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7111111111111110002, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7111111111111110002, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7111111111111110002, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7111111111111110002, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 7111552123950175587, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
       propertyPath: m_LocalPosition.x
       value: -3
