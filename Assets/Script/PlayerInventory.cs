@@ -20,6 +20,8 @@ public class PlayerInventory : MonoBehaviour
     [SerializeField] private float candleBurnDuration = 5f;
 
     private float candleTimeRemaining;
+    private CandleFlameController candleFlame;
+    [SerializeField] private Sprite[] candleFlameFrames = new Sprite[0];
 
     public InventoryItemType CurrentItem { get; private set; }
         = InventoryItemType.None;
@@ -34,6 +36,19 @@ public class PlayerInventory : MonoBehaviour
 
     private void Awake()
     {
+        if (candleVisual != null)
+        {
+            candleFlame = candleVisual.GetComponent<CandleFlameController>();
+
+            if (candleFlame == null)
+            {
+                candleFlame =
+                    candleVisual.AddComponent<CandleFlameController>();
+            }
+
+            candleFlame.SetFlameFrames(candleFlameFrames);
+        }
+
         RefreshHeldVisual();
     }
 
@@ -45,6 +60,13 @@ public class PlayerInventory : MonoBehaviour
         }
 
         candleTimeRemaining -= Time.deltaTime;
+
+        if (candleFlame != null)
+        {
+            candleFlame.SetBurnProgress(
+                CandleTimeRemaining / CandleBurnDuration
+            );
+        }
 
         if (candleTimeRemaining <= 0f)
         {
@@ -122,9 +144,17 @@ public class PlayerInventory : MonoBehaviour
 
         if (candleVisual != null)
         {
-            candleVisual.SetActive(
-                CurrentItem == InventoryItemType.Candle
-            );
+            bool candleIsActive =
+                CurrentItem == InventoryItemType.Candle;
+
+            candleVisual.SetActive(candleIsActive);
+
+            if (candleIsActive && candleFlame != null)
+            {
+                candleFlame.SetBurnProgress(
+                    CandleTimeRemaining / CandleBurnDuration
+                );
+            }
         }
 
         if (bloodVisual != null)

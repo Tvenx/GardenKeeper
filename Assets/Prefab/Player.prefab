@@ -509,12 +509,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCameraController
   cameraTransform: {fileID: 2701248297201339637}
   visualRoot: {fileID: 5090013681713475650}
+<<<<<<< Updated upstream
   cameraDistance: 1
   cameraTargetHeight: 0.5
   cameraHorizontalOffset: 0.2
   followSmoothTime: 0
   movementSwayAngle: 0.5
   movementSwayFrequency: 0.2
+=======
+  walkSpeed: 2
+  sprintSpeed: 3.5
+  rotationSpeed: 200
+  gravity: -20
+  cameraDistance: 1
+  cameraTargetHeight: 0.5
+  cameraHorizontalOffset: 0.21
+>>>>>>> Stashed changes
   mouseSensitivity: 0.15
   gamepadLookSensitivity: 180
   initialCameraPitch: 15
@@ -555,6 +565,11 @@ MonoBehaviour:
   candleVisual: {fileID: 198041480240238486}
   bloodVisual: {fileID: 8337567406575937199}
   candleBurnDuration: 10
+  candleFlameFrames:
+  - {fileID: 21300000, guid: a7ec76d56e7c4919b1c99b8f82ce7e21, type: 3}
+  - {fileID: 21300000, guid: b83dfe0c771a4ff8b06dab3924e72c11, type: 3}
+  - {fileID: 21300000, guid: f3318218457e4ef6a1a72122df607ac4, type: 3}
+  - {fileID: 21300000, guid: 67cb64f5192448208a643f174f9a3d5b, type: 3}
 --- !u!114 &8256697509862863342
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -611,6 +626,7 @@ MonoBehaviour:
   timerText: {fileID: 7111111111111110033}
   leftFill: {fileID: 7111111111111110051}
   rightFill: {fileID: 7111111111111110061}
+<<<<<<< Updated upstream
 --- !u!114 &6593032239981562043
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -724,6 +740,8 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+=======
+>>>>>>> Stashed changes
 --- !u!1 &4300582601096956255
 GameObject:
   m_ObjectHideFlags: 0
@@ -883,7 +901,7 @@ GameObject:
   - component: {fileID: 5217466480822558914}
   m_Layer: 0
   m_Name: Camera
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
