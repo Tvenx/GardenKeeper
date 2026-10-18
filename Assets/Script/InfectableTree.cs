@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class InfectableTree : InteractableObject
 {
+    public event System.Action<InfectableTree> BleedingStarted;
+
     protected override string InteractionPromptText =>
         isBleeding ? "СОБРАТЬ КРОВЬ" : "ИСПОЛЬЗОВАТЬ СВЕЧУ";
 
@@ -218,6 +220,7 @@ public class InfectableTree : InteractableObject
 
         // The countdown pauses at its current value.
         RefreshVisuals();
+        BleedingStarted?.Invoke(this);
 
         return true;
     }
