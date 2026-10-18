@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1289413909148924291}
   - component: {fileID: 3857332596817691981}
   - component: {fileID: 8885650388478873083}
+  - component: {fileID: -2203662733030067614}
   m_Layer: 3
   m_Name: Tree
   m_TagString: Untagged
@@ -157,6 +158,18 @@ MonoBehaviour:
   isBleeding: 0
   bleedingCheckInterval: 10
   bleedingChancePercent: 10
+--- !u!114 &-2203662733030067614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 428088918770264155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cde23d43a4680b1468b7a1efbc77b7c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldInteractionPrompt
 --- !u!1 &3560577641956293901
 GameObject:
   m_ObjectHideFlags: 0

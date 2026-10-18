@@ -31,6 +31,12 @@ public class StatueCandleStation : InteractableObject
 
     public int AvailableCandles => GetAvailableCandleCount();
 
+    protected override string InteractionPromptText =>
+        InteractionPromptInventory != null &&
+        InteractionPromptInventory.CurrentItem == InventoryItemType.Blood
+            ? "ПЕРЕДАТЬ КРОВЬ"
+            : "ПОДОБРАТЬ СВЕЧУ";
+
     protected override void Awake()
     {
         base.Awake();
@@ -190,3 +196,4 @@ public class StatueCandleStation : InteractableObject
         }
     }
 }
+    

@@ -3,6 +3,15 @@ using UnityEngine;
 
 public class InfectableTree : InteractableObject
 {
+    protected override string InteractionPromptText =>
+        isBleeding ? "СОБРАТЬ КРОВЬ" : "ИСПОЛЬЗОВАТЬ СВЕЧУ";
+
+    protected override bool CanShowInteractionPrompt =>
+        isBleeding ||
+        (isCurrentlyInfected &&
+         InteractionPromptInventory != null &&
+         InteractionPromptInventory.CurrentItem == InventoryItemType.Candle);
+
     [Header("Visual Variants")]
     [SerializeField] private GameObject healthyVisual;
     [SerializeField] private GameObject infectedVisual;
@@ -126,6 +135,8 @@ public class InfectableTree : InteractableObject
         {
             bleedingVisual.SetActive(isBleeding);
         }
+
+        RefreshInteractionPrompt();
     }
 
     public bool TryInfect()
@@ -198,14 +209,32 @@ public class InfectableTree : InteractableObject
 
     public override bool CanInteract(PlayerInventory inventory)
     {
-        return isBleeding &&
-               inventory != null &&
-               inventory.CurrentItem != InventoryItemType.Blood;
+        if (inventory == null)
+        {
+            return false;
+        }
+
+        bool canCollectBlood =
+            isBleeding &&
+            inventory.CurrentItem != InventoryItemType.Blood;
+
+        bool canUseCandle =
+            isCurrentlyInfected &&
+            inventory.CurrentItem == InventoryItemType.Candle;
+
+        return canCollectBlood || canUseCandle;
     }
 
     public override void Interact(PlayerInventory inventory)
     {
         if (!CanInteract(inventory))
+        {
+            return;
+        }
+
+        // Candle use is handled by PlayerInteraction. This method only
+        // collects blood from a bleeding tree.
+        if (!isBleeding)
         {
             return;
         }

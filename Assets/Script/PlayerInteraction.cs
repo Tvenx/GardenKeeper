@@ -29,32 +29,7 @@ public class PlayerInteraction : MonoBehaviour
     public InteractableObject LookedAtInteractable =>
         lookedAtInteractable;
 
-    public string InteractionButtonDisplayName
-    {
-        get
-        {
-            if (playerInput == null || playerInput.Interact == null)
-            {
-                return "Не назначено";
-            }
-
-            InputAction action = playerInput.Interact;
-
-            if (action.activeControl != null)
-            {
-                return action.activeControl.displayName;
-            }
-
-            string displayName =
-                action.GetBindingDisplayString(
-                    group: "Keyboard&Mouse"
-                );
-
-            return string.IsNullOrEmpty(displayName)
-                ? action.GetBindingDisplayString()
-                : displayName;
-        }
-    }
+    public string InteractionButtonDisplayName => "ЛКМ";
 
     private void Awake()
     {
@@ -320,6 +295,15 @@ public class PlayerInteraction : MonoBehaviour
     {
         if (currentTarget == newTarget)
         {
+            if (currentTarget != null)
+            {
+                currentTarget.SetOutline(
+                    true,
+                    inventory,
+                    InteractionButtonDisplayName
+                );
+            }
+
             return;
         }
 
@@ -332,7 +316,11 @@ public class PlayerInteraction : MonoBehaviour
 
         if (currentTarget != null)
         {
-            currentTarget.SetOutline(true);
+            currentTarget.SetOutline(
+                true,
+                inventory,
+                InteractionButtonDisplayName
+            );
         }
     }
 
