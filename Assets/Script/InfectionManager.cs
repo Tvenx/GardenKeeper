@@ -15,6 +15,15 @@ public class InfectionManager : MonoBehaviour
     private List<InfectableTree> trees =
         new List<InfectableTree>();
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource infectionAudioSource;
+    [SerializeField] private AudioClip infectionSound;
+    [SerializeField] private AudioClip bleedingSound;
+    [Range(0f, 1f)]
+    [SerializeField] private float infectionSoundVolume = 1f;
+    [Range(0f, 1f)]
+    [SerializeField] private float bleedingSoundVolume = 1f;
+
     [Header("Starting Infection")]
     [Min(0)]
     [SerializeField] private int initialInfectedTreeCount = 1;
@@ -76,13 +85,52 @@ public class InfectionManager : MonoBehaviour
 
     private float elapsedGameTime;
     private float randomInfectionTimer;
-
     private bool hasLost;
 
     private readonly Dictionary<InfectableTree, SpreadTimerState>
         spreadTimers = new Dictionary<InfectableTree, SpreadTimerState>();
 
+    private void Awake()
+    {
+        if (infectionAudioSource == null)
+        {
+            infectionAudioSource = GetComponent<AudioSource>();
+        }
 
+        if (infectionAudioSource == null)
+        {
+            infectionAudioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        infectionAudioSource.playOnAwake = false;
+    }
+
+    private void OnEnable()
+    {
+        foreach (InfectableTree tree in trees)
+        {
+            if (tree != null)
+            {
+                tree.BleedingStarted += HandleTreeStartedBleeding;
+            }
+        }
+    }
+
+    private void OnDisable()
+    {
+        foreach (InfectableTree tree in trees)
+        {
+            if (tree != null)
+            {
+                tree.BleedingStarted -= HandleTreeStartedBleeding;
+            }
+        }
+    }
+
+    private void HandleTreeStartedBleeding(InfectableTree tree)
+    {
+        PlayAudio(bleedingSound, bleedingSoundVolume);
+    }
 
     // Read-only debug information.
 
@@ -326,7 +374,7 @@ public class InfectionManager : MonoBehaviour
 
             candidates.RemoveAt(index);
 
-            if (selectedTree.TryInfect())
+            if (TryInfectTree(selectedTree))
             {
                 currentlyInfected++;
             }
@@ -352,7 +400,7 @@ public class InfectionManager : MonoBehaviour
         }
 
         int index = Random.Range(0, candidates.Count);
-        candidates[index].TryInfect();
+        TryInfectTree(candidates[index]);
     }
 
     private void UpdateSpreadTimers(
@@ -481,10 +529,32 @@ public class InfectionManager : MonoBehaviour
         int index = Random.Range(0, candidates.Count);
         InfectableTree selectedTarget = candidates[index];
 
-        if (selectedTarget.TryInfect())
+        if (TryInfectTree(selectedTarget))
         {
             reservedTargets.Add(selectedTarget);
         }
+    }
+
+    private bool TryInfectTree(InfectableTree tree)
+    {
+        if (tree == null || !tree.TryInfect())
+        {
+            return false;
+        }
+
+        PlayAudio(infectionSound, infectionSoundVolume);
+
+        return true;
+    }
+
+    private void PlayAudio(AudioClip clip, float volume)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+
+        infectionAudioSource.PlayOneShot(clip, volume);
     }
 
     private List<InfectableTree> GetValidTrees()

@@ -29,9 +29,16 @@ public abstract class InteractableObject : MonoBehaviour
             quickOutline.enabled = false;
         }
 
-        // The visual UI is created lazily when this object first becomes
-        // the player's valid interaction target.
         interactionPrompt = GetComponent<WorldInteractionPrompt>();
+        if (interactionPrompt == null)
+        {
+            Debug.LogError(
+                $"{GetType().Name} on {name} needs a " +
+                $"{nameof(WorldInteractionPrompt)} component with its UI " +
+                "assigned on the prefab.",
+                this
+            );
+        }
     }
 
     public void SetOutline(bool visible)
@@ -73,31 +80,24 @@ public abstract class InteractableObject : MonoBehaviour
 
     protected void RefreshInteractionPrompt()
     {
-        if (!isTargeted)
+        if (interactionPrompt == null)
         {
-            if (interactionPrompt != null)
-            {
-                interactionPrompt.SetVisible(false);
-            }
-
             return;
         }
 
-        if (interactionPrompt == null)
+        if (!isTargeted)
         {
-            interactionPrompt = GetComponent<WorldInteractionPrompt>();
-
-            if (interactionPrompt == null)
-            {
-                interactionPrompt =
-                    gameObject.AddComponent<WorldInteractionPrompt>();
-            }
+            interactionPrompt.SetVisible(false);
+            return;
         }
 
         if (!interactionPromptInitialized)
         {
-            interactionPrompt.Initialize(transform);
-            interactionPromptInitialized = true;
+            interactionPromptInitialized = interactionPrompt.Initialize(transform);
+            if (!interactionPromptInitialized)
+            {
+                return;
+            }
         }
 
         interactionPrompt.SetPrompt(
