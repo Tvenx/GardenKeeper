@@ -4,71 +4,76 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class WorldInteractionPrompt : MonoBehaviour
 {
-    private const int CanvasWidth = 320;
-    private const int CanvasHeight = 76;
-    private const float WorldScale = 0.0035f;
-
-    private static Sprite capsuleSprite;
+    [Header("Visual")]
+    [SerializeField] private GameObject visualRoot;
+    [SerializeField] private RectTransform canvasRect;
+    [SerializeField] private CanvasGroup canvasGroup;
+    [SerializeField] private Text keyLabel;
+    [SerializeField] private Text actionLabel;
+    [SerializeField, Min(0.001f)] private float worldScale = 0.0035f;
 
     private Transform target;
-    private GameObject visualRoot;
-    private RectTransform canvasRect;
-    private CanvasGroup canvasGroup;
-    private Text keyLabel;
-    private Text actionLabel;
     private Vector3 localAnchor;
     private Camera targetCamera;
     private bool isVisible;
 
-    public void Initialize(Transform followTarget)
+    public bool Initialize(Transform followTarget)
     {
         target = followTarget;
 
-        if (visualRoot == null)
+        if (visualRoot == null ||
+            canvasRect == null ||
+            canvasGroup == null ||
+            keyLabel == null ||
+            actionLabel == null)
         {
-            BuildVisual();
+            Debug.LogError(
+                $"{nameof(WorldInteractionPrompt)} on {name} is missing " +
+                "its prefab UI references. Assign the panel, CanvasGroup, " +
+                "and both labels in the Inspector.",
+                this
+            );
+            return false;
         }
+
+        Canvas canvas = visualRoot.GetComponent<Canvas>();
+        targetCamera = Camera.main;
+        if (canvas != null)
+        {
+            canvas.worldCamera = targetCamera;
+        }
+
+        canvasGroup.alpha = 0f;
+        SetWorldScale(worldScale * 0.92f);
+        visualRoot.SetActive(false);
 
         localAnchor = CalculateAnchor(target);
         UpdateWorldPosition();
+        return true;
     }
 
     public void SetPrompt(string action, string key)
     {
         if (actionLabel != null)
         {
-            string nextAction = string.IsNullOrWhiteSpace(action)
+            actionLabel.text = string.IsNullOrWhiteSpace(action)
                 ? "ВЗАИМОДЕЙСТВОВАТЬ"
                 : action.ToUpperInvariant();
-
-            if (actionLabel.text != nextAction)
-            {
-                actionLabel.text = nextAction;
-            }
         }
 
         if (keyLabel != null)
         {
-            string nextKey = string.IsNullOrWhiteSpace(key) ? "E" : key;
-
-            if (keyLabel.text != nextKey)
-            {
-                keyLabel.text = nextKey;
-            }
-
-            keyLabel.fontSize = nextKey.Length <= 1
-                ? 24
-                : nextKey.Length <= 3
-                    ? 18
-                    : 13;
-            keyLabel.resizeTextForBestFit = false;
-            keyLabel.horizontalOverflow = HorizontalWrapMode.Overflow;
-            keyLabel.verticalOverflow = VerticalWrapMode.Overflow;
+            keyLabel.text = string.IsNullOrWhiteSpace(key) ? "E" : key;
         }
     }
 
     public void SetVisible(bool visible)
     {
+        if (visualRoot == null || canvasGroup == null || canvasRect == null)
+        {
+            return;
+        }
+
         if (visible && !enabled)
         {
             enabled = true;
@@ -76,15 +81,17 @@ public sealed class WorldInteractionPrompt : MonoBehaviour
 
         isVisible = visible;
 
-        if (visible && visualRoot != null && !visualRoot.activeSelf)
+        if (visible && !visualRoot.activeSelf)
         {
+            canvasGroup.alpha = 0f;
+            SetWorldScale(worldScale * 0.92f);
             visualRoot.SetActive(true);
         }
     }
 
     private void Update()
     {
-        if (canvasGroup == null || canvasRect == null)
+        if (canvasGroup == null || canvasRect == null || visualRoot == null)
         {
             return;
         }
@@ -108,14 +115,14 @@ public sealed class WorldInteractionPrompt : MonoBehaviour
         );
 
         float targetScale = isVisible ? 1f : 0.92f;
-        float currentScale = canvasRect.localScale.x / WorldScale;
+        float currentScale = canvasRect.lossyScale.x / worldScale;
         float nextScale = Mathf.Lerp(
             currentScale,
             targetScale,
             Time.deltaTime * 10f
         );
 
-        canvasRect.localScale = Vector3.one * (WorldScale * nextScale);
+        SetWorldScale(worldScale * nextScale);
 
         if (!isVisible &&
             canvasGroup.alpha <= 0.001f &&
@@ -152,88 +159,31 @@ public sealed class WorldInteractionPrompt : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
+    private void SetWorldScale(float scale)
     {
-        if (visualRoot != null)
+        if (canvasRect == null)
         {
-            Destroy(visualRoot);
+            return;
         }
+
+        Transform parent = canvasRect.parent;
+        if (parent == null)
+        {
+            canvasRect.localScale = Vector3.one * scale;
+            return;
+        }
+
+        Vector3 parentScale = parent.lossyScale;
+        canvasRect.localScale = new Vector3(
+            scale / SafeScale(parentScale.x),
+            scale / SafeScale(parentScale.y),
+            scale / SafeScale(parentScale.z)
+        );
     }
 
-    private void BuildVisual()
+    private static float SafeScale(float value)
     {
-        visualRoot = new GameObject("Interaction Prompt");
-        canvasRect = visualRoot.AddComponent<RectTransform>();
-
-        Canvas canvas = visualRoot.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.WorldSpace;
-        canvas.overrideSorting = true;
-        canvas.sortingOrder = 25;
-        canvas.worldCamera = Camera.main;
-
-        canvasGroup = visualRoot.AddComponent<CanvasGroup>();
-        canvasGroup.alpha = 0f;
-        canvasGroup.interactable = false;
-        canvasGroup.blocksRaycasts = false;
-
-        canvasRect.sizeDelta = new Vector2(CanvasWidth, CanvasHeight);
-        canvasRect.localScale = Vector3.one * (WorldScale * 0.92f);
-
-        Image background = CreateImage(
-            "Pill Background",
-            canvasRect,
-            new Vector2(CanvasWidth, CanvasHeight),
-            new Color(0.055f, 0.085f, 0.11f, 0.94f)
-        );
-
-        background.sprite = GetCapsuleSprite();
-        background.type = Image.Type.Simple;
-
-        Image keyBackground = CreateImage(
-            "Key Background",
-            canvasRect,
-            new Vector2(52f, 52f),
-            new Color(0.91f, 0.72f, 0.42f, 1f)
-        );
-
-        keyBackground.sprite = GetCapsuleSprite();
-        keyBackground.type = Image.Type.Simple;
-        keyBackground.rectTransform.anchoredPosition =
-            new Vector2(-116f, 0f);
-
-        keyLabel = CreateText(
-            "Key",
-            canvasRect,
-            new Vector2(52f, 52f),
-            new Vector2(-116f, 0f),
-            24,
-            FontStyle.Bold,
-            new Color(0.09f, 0.12f, 0.14f, 1f),
-            TextAnchor.MiddleCenter
-        );
-
-        keyLabel.text = "E";
-        keyLabel.resizeTextForBestFit = false;
-        keyLabel.horizontalOverflow = HorizontalWrapMode.Overflow;
-        keyLabel.verticalOverflow = VerticalWrapMode.Overflow;
-
-        actionLabel = CreateText(
-            "Action",
-            canvasRect,
-            new Vector2(220f, 58f),
-            new Vector2(27f, 0f),
-            22,
-            FontStyle.Bold,
-            Color.white,
-            TextAnchor.MiddleCenter
-        );
-
-        actionLabel.text = "ВЗАИМОДЕЙСТВОВАТЬ";
-        actionLabel.horizontalOverflow = HorizontalWrapMode.Wrap;
-        actionLabel.verticalOverflow = VerticalWrapMode.Truncate;
-
-        targetCamera = Camera.main;
-        visualRoot.SetActive(false);
+        return Mathf.Abs(value) < 0.0001f ? 1f : value;
     }
 
     private void UpdateWorldPosition()
@@ -267,9 +217,6 @@ public sealed class WorldInteractionPrompt : MonoBehaviour
 
         Vector3 directionToCamera =
             targetCamera.transform.position - visualRoot.transform.position;
-
-        // Keep the sign upright and face the readable side of the
-        // world-space Canvas toward the camera.
         directionToCamera.y = 0f;
 
         if (directionToCamera.sqrMagnitude > 0.0001f)
@@ -341,154 +288,5 @@ public sealed class WorldInteractionPrompt : MonoBehaviour
             bounds.center + Vector3.up * (bounds.extents.y + 0.25f);
 
         return root.InverseTransformPoint(worldAnchor);
-    }
-
-    private static Image CreateImage(
-        string objectName,
-        Transform parent,
-        Vector2 size,
-        Color color)
-    {
-        GameObject child = new GameObject(
-            objectName,
-            typeof(RectTransform),
-            typeof(Image)
-        );
-
-        child.transform.SetParent(parent, false);
-
-        RectTransform rect = child.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.5f, 0.5f);
-        rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = size;
-
-        Image image = child.GetComponent<Image>();
-        image.color = color;
-        image.raycastTarget = false;
-        return image;
-    }
-
-    private static Text CreateText(
-        string objectName,
-        Transform parent,
-        Vector2 size,
-        Vector2 position,
-        int fontSize,
-        FontStyle fontStyle,
-        Color color,
-        TextAnchor alignment)
-    {
-        GameObject child = new GameObject(
-            objectName,
-            typeof(RectTransform),
-            typeof(Text)
-        );
-
-        child.transform.SetParent(parent, false);
-
-        RectTransform rect = child.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.5f, 0.5f);
-        rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = size;
-        rect.anchoredPosition = position;
-
-        Text text = child.GetComponent<Text>();
-        text.font = GetRuntimeFont();
-        text.fontSize = fontSize;
-        text.fontStyle = fontStyle;
-        text.color = color;
-        text.alignment = alignment;
-        text.raycastTarget = false;
-        text.resizeTextForBestFit = true;
-        text.resizeTextMinSize = Mathf.Max(12, fontSize - 5);
-        text.resizeTextMaxSize = fontSize;
-        return text;
-    }
-
-    private static Font GetRuntimeFont()
-    {
-        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-        if (font == null)
-        {
-            font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        }
-
-        if (font == null)
-        {
-            font = Font.CreateDynamicFontFromOSFont(
-                new[] { "Arial", "Segoe UI" },
-                24
-            );
-        }
-
-        return font;
-    }
-
-    private static Sprite GetCapsuleSprite()
-    {
-        if (capsuleSprite != null)
-        {
-            return capsuleSprite;
-        }
-
-        const int width = 128;
-        const int height = 64;
-        const float radius = 31f;
-        const float centerY = height / 2f;
-
-        Texture2D texture = new Texture2D(
-            width,
-            height,
-            TextureFormat.RGBA32,
-            false
-        );
-
-        texture.name = "Interaction Prompt Capsule";
-        texture.filterMode = FilterMode.Bilinear;
-        texture.wrapMode = TextureWrapMode.Clamp;
-
-        Color32[] pixels = new Color32[width * height];
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                float nearestX = Mathf.Clamp(x, radius, width - radius);
-                float distance = Vector2.Distance(
-                    new Vector2(x, y),
-                    new Vector2(nearestX, centerY)
-                );
-
-                byte alpha = (byte)(
-                    Mathf.Clamp01(radius + 0.5f - distance) * 255f
-                );
-
-                pixels[y * width + x] = new Color32(
-                    255,
-                    255,
-                    255,
-                    alpha
-                );
-            }
-        }
-
-        texture.SetPixels32(pixels);
-        texture.Apply();
-
-        capsuleSprite = Sprite.Create(
-            texture,
-            new Rect(0f, 0f, width, height),
-            new Vector2(0.5f, 0.5f),
-            100f,
-            0,
-            SpriteMeshType.FullRect,
-            new Vector4(31f, 31f, 31f, 31f)
-        );
-
-        capsuleSprite.name = "Interaction Prompt Capsule";
-        return capsuleSprite;
     }
 }
