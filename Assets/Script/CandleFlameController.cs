@@ -18,8 +18,7 @@ public sealed class CandleFlameController : MonoBehaviour
     [SerializeField] private Vector3 defaultSpriteScale =
         new Vector3(0.204f, 0.204f, 0.204f);
 
-    [SerializeField] private Color monochromeFrameTint =
-        new Color(1f, 0.72f, 0.32f, 1f);
+    [SerializeField] private Color monochromeFrameTint = Color.white;
 
     [Header("Flame Light")]
     [Min(0f)]
@@ -28,8 +27,7 @@ public sealed class CandleFlameController : MonoBehaviour
     [Min(0f)]
     [SerializeField] private float baseLightRange = 2.2f;
 
-    [SerializeField] private Color lightColor =
-        new Color(1f, 0.58f, 0.24f, 1f);
+    [SerializeField] private Color lightColor = Color.white;
 
     private bool isInitialized;
     private float burnProgress = 1f;
