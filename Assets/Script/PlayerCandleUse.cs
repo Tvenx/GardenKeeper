@@ -57,6 +57,21 @@ public class PlayerCandleUse : MonoBehaviour
             }
         }
 
+
+        MonsterController[] monsters =
+    FindObjectsByType<MonsterController>(
+        FindObjectsSortMode.None
+    );
+
+        foreach (MonsterController monster in monsters)
+        {
+            if (monster != null)
+            {
+                monster.TryTeleportFromCandle(transform.position);
+            }
+        }
+
+
         // The candle is consumed even if there are no infected trees.
         inventory.ClearItem();
 

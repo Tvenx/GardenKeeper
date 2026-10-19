@@ -10,6 +10,9 @@ public enum InfectionDefeatMode
 
 public class InfectionManager : MonoBehaviour
 {
+    [Header("Shared Defeat")]
+    [SerializeField] private GameDefeatManager defeatManager;
+
     [Header("Trees")]
     [SerializeField]
     private List<InfectableTree> trees =
@@ -19,8 +22,10 @@ public class InfectionManager : MonoBehaviour
     [SerializeField] private AudioSource infectionAudioSource;
     [SerializeField] private AudioClip infectionSound;
     [SerializeField] private AudioClip bleedingSound;
+
     [Range(0f, 1f)]
     [SerializeField] private float infectionSoundVolume = 1f;
+
     [Range(0f, 1f)]
     [SerializeField] private float bleedingSoundVolume = 1f;
 
@@ -88,7 +93,24 @@ public class InfectionManager : MonoBehaviour
     private bool hasLost;
 
     private readonly Dictionary<InfectableTree, SpreadTimerState>
-        spreadTimers = new Dictionary<InfectableTree, SpreadTimerState>();
+        spreadTimers =
+            new Dictionary<InfectableTree, SpreadTimerState>();
+
+    private class SpreadTimerState
+    {
+        public int infectionCycle;
+        public float timeRemaining;
+
+        public SpreadTimerState(int cycle, float time)
+        {
+            infectionCycle = cycle;
+            timeRemaining = time;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Unity lifecycle
+    // ---------------------------------------------------------
 
     private void Awake()
     {
@@ -103,27 +125,113 @@ public class InfectionManager : MonoBehaviour
         }
 
         infectionAudioSource.playOnAwake = false;
+
+        if (defeatManager == null)
+        {
+            defeatManager =
+                FindFirstObjectByType<GameDefeatManager>();
+        }
     }
 
     private void OnEnable()
     {
-        foreach (InfectableTree tree in trees)
-        {
-            if (tree != null)
-            {
-                tree.BleedingStarted += HandleTreeStartedBleeding;
-            }
-        }
+        SubscribeToTreeEvents();
     }
 
     private void OnDisable()
     {
+        UnsubscribeFromTreeEvents();
+    }
+
+    private void Start()
+    {
+        InitializeStartingInfections();
+
+        randomInfectionTimer = GetRandomInfectionInterval();
+
+        CheckDefeatCondition();
+    }
+
+    private void Update()
+    {
+        // Stop if this manager has already registered forest defeat.
+        if (hasLost)
+        {
+            return;
+        }
+
+        // Also stop if another system, such as the monster,
+        // has already caused the shared defeat.
+        if (defeatManager != null && defeatManager.IsDefeated)
+        {
+            hasLost = true;
+            return;
+        }
+
+        float deltaTime = Time.deltaTime;
+        elapsedGameTime += deltaTime;
+
+        List<InfectableTree> allTrees = GetValidTrees();
+
+        // Each infected tree owns its own spread timer.
+        if (enableSpread)
+        {
+            UpdateSpreadTimers(allTrees, deltaTime);
+        }
+
+        // Check defeat before processing another random infection.
+        if (CheckDefeatCondition())
+        {
+            return;
+        }
+
+        if (enableRandomInfection)
+        {
+            randomInfectionTimer -= deltaTime;
+
+            if (randomInfectionTimer <= 0f)
+            {
+                TryRandomInfection();
+                randomInfectionTimer = GetRandomInfectionInterval();
+            }
+        }
+
+        CheckDefeatCondition();
+    }
+
+    // ---------------------------------------------------------
+    // Tree event subscriptions and audio
+    // ---------------------------------------------------------
+
+    private void SubscribeToTreeEvents()
+    {
+        HashSet<InfectableTree> subscribedTrees =
+            new HashSet<InfectableTree>();
+
         foreach (InfectableTree tree in trees)
         {
-            if (tree != null)
+            if (tree == null || !subscribedTrees.Add(tree))
             {
-                tree.BleedingStarted -= HandleTreeStartedBleeding;
+                continue;
             }
+
+            tree.BleedingStarted += HandleTreeStartedBleeding;
+        }
+    }
+
+    private void UnsubscribeFromTreeEvents()
+    {
+        HashSet<InfectableTree> unsubscribedTrees =
+            new HashSet<InfectableTree>();
+
+        foreach (InfectableTree tree in trees)
+        {
+            if (tree == null || !unsubscribedTrees.Add(tree))
+            {
+                continue;
+            }
+
+            tree.BleedingStarted -= HandleTreeStartedBleeding;
         }
     }
 
@@ -132,7 +240,19 @@ public class InfectionManager : MonoBehaviour
         PlayAudio(bleedingSound, bleedingSoundVolume);
     }
 
-    // Read-only debug information.
+    private void PlayAudio(AudioClip clip, float volume)
+    {
+        if (clip == null || infectionAudioSource == null)
+        {
+            return;
+        }
+
+        infectionAudioSource.PlayOneShot(clip, volume);
+    }
+
+    // ---------------------------------------------------------
+    // Public read-only information for the debug HUD
+    // ---------------------------------------------------------
 
     public bool RandomInfectionEnabled => enableRandomInfection;
     public bool SpreadEnabled => enableSpread;
@@ -246,10 +366,17 @@ public class InfectionManager : MonoBehaviour
             );
         }
 
-        float decrease = steps * decreasePerStep;
+        float totalDecrease = steps * decreasePerStep;
 
-        currentMin = Mathf.Max(floor, startMin - decrease);
-        currentMax = Mathf.Max(floor, startMax - decrease);
+        currentMin = Mathf.Max(
+            floor,
+            startMin - totalDecrease
+        );
+
+        currentMax = Mathf.Max(
+            floor,
+            startMax - totalDecrease
+        );
     }
 
     public bool TryGetSpreadTimeRemaining(
@@ -277,75 +404,22 @@ public class InfectionManager : MonoBehaviour
             return false;
         }
 
-        secondsRemaining = Mathf.Max(0f, state.timeRemaining);
+        secondsRemaining = Mathf.Max(
+            0f,
+            state.timeRemaining
+        );
+
         return true;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-
-    private class SpreadTimerState
-    {
-        public int infectionCycle;
-        public float timeRemaining;
-
-        public SpreadTimerState(int cycle, float time)
-        {
-            infectionCycle = cycle;
-            timeRemaining = time;
-        }
-    }
-
-    private void Start()
-    {
-        InitializeStartingInfections();
-
-        randomInfectionTimer = GetRandomInfectionInterval();
-
-        CheckDefeatCondition();
-    }
-
-    private void Update()
-    {
-        if (hasLost)
-        {
-            return;
-        }
-
-        float deltaTime = Time.deltaTime;
-        elapsedGameTime += deltaTime;
-
-        List<InfectableTree> allTrees = GetValidTrees();
-
-        if (enableSpread)
-        {
-            UpdateSpreadTimers(allTrees, deltaTime);
-        }
-
-        // Check immediately after spread, before random infection.
-        if (CheckDefeatCondition())
-        {
-            return;
-        }
-
-        if (enableRandomInfection)
-        {
-            randomInfectionTimer -= deltaTime;
-
-            if (randomInfectionTimer <= 0f)
-            {
-                TryRandomInfection();
-                randomInfectionTimer = GetRandomInfectionInterval();
-            }
-        }
-
-        CheckDefeatCondition();
-    }
+    // ---------------------------------------------------------
+    // Initial infection
+    // ---------------------------------------------------------
 
     private void InitializeStartingInfections()
     {
         List<InfectableTree> allTrees = GetValidTrees();
+
         List<InfectableTree> candidates =
             new List<InfectableTree>();
 
@@ -364,12 +438,16 @@ public class InfectionManager : MonoBehaviour
         }
 
         // Existing infected trees count toward the requested total.
-        int targetCount = Mathf.Max(0, initialInfectedTreeCount);
+        int targetCount = Mathf.Max(
+            0,
+            initialInfectedTreeCount
+        );
 
         while (currentlyInfected < targetCount &&
                candidates.Count > 0)
         {
             int index = Random.Range(0, candidates.Count);
+
             InfectableTree selectedTree = candidates[index];
 
             candidates.RemoveAt(index);
@@ -380,6 +458,10 @@ public class InfectionManager : MonoBehaviour
             }
         }
     }
+
+    // ---------------------------------------------------------
+    // Random infection
+    // ---------------------------------------------------------
 
     private void TryRandomInfection()
     {
@@ -400,8 +482,13 @@ public class InfectionManager : MonoBehaviour
         }
 
         int index = Random.Range(0, candidates.Count);
+
         TryInfectTree(candidates[index]);
     }
+
+    // ---------------------------------------------------------
+    // Independent spread timers
+    // ---------------------------------------------------------
 
     private void UpdateSpreadTimers(
         List<InfectableTree> allTrees,
@@ -410,8 +497,8 @@ public class InfectionManager : MonoBehaviour
         List<InfectableTree> dueSources =
             new List<InfectableTree>();
 
-        // Timers are independent. A newly infected tree receives
-        // a fresh timer and does not count down during this frame.
+        // Initialize a new timer for each newly infected tree.
+        // Its timer does not count down on its initialization frame.
         foreach (InfectableTree tree in allTrees)
         {
             if (!tree.IsCurrentlyInfected)
@@ -420,7 +507,9 @@ public class InfectionManager : MonoBehaviour
                 continue;
             }
 
-            if (!spreadTimers.TryGetValue(tree, out SpreadTimerState state) ||
+            if (!spreadTimers.TryGetValue(
+                    tree,
+                    out SpreadTimerState state) ||
                 state.infectionCycle != tree.InfectionCycle)
             {
                 spreadTimers[tree] = new SpreadTimerState(
@@ -439,8 +528,7 @@ public class InfectionManager : MonoBehaviour
             }
         }
 
-        // All sources that are ready this frame share a reservation set.
-        // A target cannot be selected by more than one source per cycle.
+        // Each target can only be selected once in this spread cycle.
         HashSet<InfectableTree> reservedTargets =
             new HashSet<InfectableTree>();
 
@@ -452,20 +540,24 @@ public class InfectionManager : MonoBehaviour
                 continue;
             }
 
-            TrySpreadFromTree(source, allTrees, reservedTargets);
-
-            // Reset this source's local timer after its attempt,
-            // whether or not a suitable target was available.
-            if (spreadTimers.TryGetValue(
+            TrySpreadFromTree(
                 source,
-                out SpreadTimerState state) &&
+                allTrees,
+                reservedTargets
+            );
+
+            // Reset the source timer after an attempt, even if no
+            // eligible target was available.
+            if (spreadTimers.TryGetValue(
+                    source,
+                    out SpreadTimerState state) &&
                 state.infectionCycle == source.InfectionCycle)
             {
                 state.timeRemaining = GetSpreadInterval();
             }
         }
 
-        // Remove entries for trees that are no longer in the manager's list.
+        // Remove timers for inactive, removed or cured trees.
         HashSet<InfectableTree> validSet =
             new HashSet<InfectableTree>(allTrees);
 
@@ -520,13 +612,15 @@ public class InfectionManager : MonoBehaviour
             }
         }
 
-        // No target in range: this source will retry after its next interval.
+        // No suitable neighbour: the source will try again
+        // after its next local timer expires.
         if (candidates.Count == 0)
         {
             return;
         }
 
         int index = Random.Range(0, candidates.Count);
+
         InfectableTree selectedTarget = candidates[index];
 
         if (TryInfectTree(selectedTarget))
@@ -534,6 +628,10 @@ public class InfectionManager : MonoBehaviour
             reservedTargets.Add(selectedTarget);
         }
     }
+
+    // ---------------------------------------------------------
+    // Tree infection and audio
+    // ---------------------------------------------------------
 
     private bool TryInfectTree(InfectableTree tree)
     {
@@ -547,15 +645,9 @@ public class InfectionManager : MonoBehaviour
         return true;
     }
 
-    private void PlayAudio(AudioClip clip, float volume)
-    {
-        if (clip == null)
-        {
-            return;
-        }
-
-        infectionAudioSource.PlayOneShot(clip, volume);
-    }
+    // ---------------------------------------------------------
+    // Tree list
+    // ---------------------------------------------------------
 
     private List<InfectableTree> GetValidTrees()
     {
@@ -582,6 +674,10 @@ public class InfectionManager : MonoBehaviour
 
         return result;
     }
+
+    // ---------------------------------------------------------
+    // Interval calculation and acceleration
+    // ---------------------------------------------------------
 
     private float GetRandomInfectionInterval()
     {
@@ -654,8 +750,19 @@ public class InfectionManager : MonoBehaviour
         return Random.Range(currentMin, currentMax);
     }
 
+    // ---------------------------------------------------------
+    // Defeat condition
+    // ---------------------------------------------------------
+
     private bool CheckDefeatCondition()
     {
+        // Respect defeat triggered by any other system.
+        if (defeatManager != null && defeatManager.IsDefeated)
+        {
+            hasLost = true;
+            return true;
+        }
+
         if (!canLose)
         {
             return false;
@@ -683,9 +790,10 @@ public class InfectionManager : MonoBehaviour
             }
         }
 
-        bool defeatReached = false;
         float infectedPercentage =
             infectedCount * 100f / allTrees.Count;
+
+        bool defeatReached;
 
         if (defeatMode == InfectionDefeatMode.Percentage)
         {
@@ -694,7 +802,10 @@ public class InfectionManager : MonoBehaviour
         }
         else
         {
-            int threshold = Mathf.Max(1, loseAtInfectedTreeCount);
+            int threshold = Mathf.Max(
+                1,
+                loseAtInfectedTreeCount
+            );
 
             defeatReached = infectedCount >= threshold;
         }
@@ -706,14 +817,33 @@ public class InfectionManager : MonoBehaviour
 
         hasLost = true;
 
-        Debug.LogError(
-            $"DEFEAT! Infected trees: {infectedCount}/{allTrees.Count} " +
-            $"({infectedPercentage:F1}%).",
-            this
-        );
+        string details =
+            $"Infected trees: {infectedCount}/{allTrees.Count} " +
+            $"({infectedPercentage:F1}%).";
+
+        if (defeatManager != null)
+        {
+            defeatManager.TriggerDefeat(
+                GameDefeatReason.ForestOverrun,
+                details,
+                this
+            );
+        }
+        else
+        {
+            Debug.LogError(
+                "DEFEAT! The forest has been overrun by infection. " +
+                details,
+                this
+            );
+        }
 
         return true;
     }
+
+    // ---------------------------------------------------------
+    // Gizmos
+    // ---------------------------------------------------------
 
     private void OnDrawGizmos()
     {
@@ -722,7 +852,12 @@ public class InfectionManager : MonoBehaviour
             return;
         }
 
-        Gizmos.color = new Color(1f, 0.25f, 0.15f, 1f);
+        Gizmos.color = new Color(
+            1f,
+            0.25f,
+            0.15f,
+            1f
+        );
 
         float radius = Mathf.Max(0f, spreadRadius);
 
