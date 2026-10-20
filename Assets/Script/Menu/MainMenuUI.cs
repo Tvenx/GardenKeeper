@@ -87,7 +87,14 @@ public class MainMenuUI : MonoBehaviour
 
     public void StartGame()
     {
-        SceneManager.LoadScene(gameSceneName);
+        if (SceneTransitionManager.Instance != null)
+        {
+            SceneTransitionManager.Instance.LoadGame();
+        }
+        else
+        {
+            Debug.LogError("SceneTransitionManager not found.");
+        }
     }
 
     public void QuitGame()
@@ -124,4 +131,6 @@ public class MainMenuUI : MonoBehaviour
         panel.SetActive(true);
         currentPanel = panel;
     }
+
+
 }
