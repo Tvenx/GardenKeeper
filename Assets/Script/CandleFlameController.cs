@@ -16,7 +16,10 @@ public sealed class CandleFlameController : MonoBehaviour
     [SerializeField] private float maxFrameInterval = 0.26f;
 
     [SerializeField] private Vector3 defaultSpriteScale =
-        new Vector3(0.204f, 0.204f, 0.204f);
+        new Vector3(0.04f, 0.05f, 0.12f);
+
+    [SerializeField] private float defaultSpriteLocalY = 0.4f;
+    [SerializeField] private float minimumSpriteLocalY = -0.3f;
 
     [SerializeField] private Color monochromeFrameTint = Color.white;
 
@@ -154,6 +157,11 @@ public sealed class CandleFlameController : MonoBehaviour
             visual.transform.localScale = defaultSpriteScale;
             flameSpriteRenderer = visual.AddComponent<SpriteRenderer>();
         }
+
+        Vector3 spriteLocalPosition =
+            flameSpriteRenderer.transform.localPosition;
+        spriteLocalPosition.y = defaultSpriteLocalY;
+        flameSpriteRenderer.transform.localPosition = spriteLocalPosition;
 
         baseSpriteScale = flameSpriteRenderer.transform.localScale;
 
@@ -305,6 +313,16 @@ public sealed class CandleFlameController : MonoBehaviour
 
         if (flameSpriteRenderer != null)
         {
+            Vector3 spriteLocalPosition =
+                flameSpriteRenderer.transform.localPosition;
+            spriteLocalPosition.y = Mathf.Lerp(
+                minimumSpriteLocalY,
+                defaultSpriteLocalY,
+                progress
+            );
+            flameSpriteRenderer.transform.localPosition =
+                spriteLocalPosition;
+
             flameSpriteRenderer.enabled = flameIsVisible;
 
             if (flameIsVisible)

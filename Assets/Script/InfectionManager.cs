@@ -247,6 +247,7 @@ public class InfectionManager : MonoBehaviour
             return;
         }
 
+        infectionAudioSource.Stop();
         infectionAudioSource.PlayOneShot(clip, volume);
     }
 
