@@ -4,8 +4,7 @@ Shader "Hidden/RedPreservePostProcess"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _RedThreshold ("Red Threshold", Range(0, 1)) = 0.1
-        _HueRange ("Hue Range (degrees)", Range(1, 30)) = 15
-        _SaturationMin ("Min Saturation", Range(0, 1)) = 0.5
+        _RedSoftness ("Red Softness", Range(0.01, 0.5)) = 0.1
     }
     SubShader
     {
@@ -20,8 +19,7 @@ Shader "Hidden/RedPreservePostProcess"
 
             sampler2D _MainTex;
             float _RedThreshold;
-            float _HueRange;
-            float _SaturationMin;
+            float _RedSoftness;
 
             struct appdata
             {
@@ -43,7 +41,7 @@ Shader "Hidden/RedPreservePostProcess"
                 return o;
             }
 
-            // Функция перевода RGB в HSV
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ RGB пїЅ HSV
             float3 RGBtoHSV(float3 c)
             {
                 float4 K = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -59,29 +57,23 @@ Shader "Hidden/RedPreservePostProcess"
             {
                 fixed4 col = tex2D(_MainTex, i.uv);
 
-                // 1. Яркость для черно-белого
+                // 1. пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅ
                 float gray = dot(col.rgb, float3(0.299, 0.587, 0.114));
 
-                // 2. Переводим в HSV
+                // 2. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ HSV
                 float3 hsv = RGBtoHSV(col.rgb);
-                float hue = hsv.x * 360.0; // Оттенок в градусах (0-360)
+                float hue = hsv.x * 360.0; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (0-360)
                 float sat = hsv.y;
                 float val = hsv.z;
 
-                // 3. Определяем, является ли цвет "чистым красным"
-                // Красный находится около 0° и 360°. Считаем расстояние до ближайшего края.
+                // 3. Select hues close to red, wrapping around 0/360 degrees.
                 float distToRed = min(hue, 360.0 - hue);
-                
-                // Маска: 1 если оттенок близок к красному И насыщенность достаточная
-                float hueMask = 1.0 - smoothstep(_HueRange, _HueRange + 5.0, distToRed);
-                float satMask = smoothstep(_SaturationMin, _SaturationMin + 0.1, sat);
-                
-                // Также отсекаем слишком темные цвета (чтобы черные тени не становились красными)
-                float valMask = smoothstep(0.1, 0.2, val); 
+                float hueMask = 1.0 - smoothstep(15.0, 20.0, distToRed);
+                float satMask = smoothstep(_RedThreshold, _RedThreshold + _RedSoftness, sat);
 
-                float redMask = hueMask * satMask * valMask;
+                float redMask = hueMask * satMask;
 
-                // 4. Смешиваем: красный остается, остальное — серое
+                // 4. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ
                 fixed3 finalColor = lerp(fixed3(gray, gray, gray), col.rgb, redMask);
 
                 return fixed4(finalColor, col.a);

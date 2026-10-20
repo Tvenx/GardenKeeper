@@ -19,6 +19,12 @@ public class InfectableTree : InteractableObject
     [SerializeField] private GameObject infectedVisual;
     [SerializeField] private GameObject bleedingVisual;
 
+    [Header("Healing Effect")]
+    [SerializeField] private GameObject healingEffect;
+
+    [Min(0.1f)]
+    [SerializeField] private float healingEffectDuration = 2f;
+
     [Header("Tree State")]
     [SerializeField] private bool hasEverBeenInfected;
     [SerializeField] private bool isCurrentlyInfected;
@@ -38,8 +44,10 @@ public class InfectableTree : InteractableObject
     [SerializeField] private int guaranteedBleedingAfterChecks = 5;
 
     private float bleedingTimeRemaining;
+    private float healingTimeRemaining;
     private int infectionCycle;
     private int failedBleedingChecks;
+    private bool isCuring;
 
     public bool HasEverBeenInfected => hasEverBeenInfected;
     public bool IsCurrentlyInfected => isCurrentlyInfected;
@@ -59,6 +67,11 @@ public class InfectableTree : InteractableObject
     {
         base.Awake();
 
+        if (healingEffect != null)
+        {
+            healingEffect.SetActive(false);
+        }
+
         NormalizeState();
 
         // Initialize the countdown. If the tree cannot bleed yet,
@@ -73,6 +86,18 @@ public class InfectableTree : InteractableObject
 
     private void Update()
     {
+        if (isCuring)
+        {
+            healingTimeRemaining -= Time.deltaTime;
+
+            if (healingTimeRemaining <= 0f)
+            {
+                CompleteCure();
+            }
+
+            return;
+        }
+
         CheckBleedingChance();
     }
 
@@ -191,19 +216,37 @@ public class InfectableTree : InteractableObject
 
     public bool Cure()
     {
-        if (!isCurrentlyInfected)
+        if (!isCurrentlyInfected || isCuring)
         {
             return false;
         }
 
+        isCuring = true;
+        healingTimeRemaining = Mathf.Max(0.1f, healingEffectDuration);
+
+        if (healingEffect != null)
+        {
+            healingEffect.SetActive(true);
+        }
+
+        return true;
+    }
+
+    private void CompleteCure()
+    {
+        if (healingEffect != null)
+        {
+            healingEffect.SetActive(false);
+        }
+
+        isCuring = false;
+        healingTimeRemaining = 0f;
         isCurrentlyInfected = false;
         isBleeding = false;
 
         // The tree becomes healthy. Its countdown resumes
         // from the remaining time when Update runs again.
         RefreshVisuals();
-
-        return true;
     }
 
     public bool StartBleeding()

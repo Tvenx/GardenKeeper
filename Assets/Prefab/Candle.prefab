@@ -245,8 +245,8 @@ Transform:
   m_GameObject: {fileID: 7893612049581637231}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.04, z: 0}
-  m_LocalScale: {x: 0.17, y: 0.17, z: 0.17}
+  m_LocalPosition: {x: 0, y: 0.2022, z: 0}
+  m_LocalScale: {x: 0.038313538, y: 0.05, z: 0.12576032}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 469104382750620138}
@@ -298,7 +298,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 10
-  m_Sprite: {fileID: 21300000, guid: a7ec76d56e7c4919b1c99b8f82ce7e21, type: 3}
+  m_Sprite: {fileID: -2031593294, guid: 6975c7852121be64b8a20ee32c614cdb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -441,13 +441,15 @@ MonoBehaviour:
   flameSpriteRenderer: {fileID: 7342089659012746}
   flameLight: {fileID: 1209456812304573901}
   flameFrames:
-  - {fileID: 21300000, guid: a7ec76d56e7c4919b1c99b8f82ce7e21, type: 3}
-  - {fileID: 21300000, guid: b83dfe0c771a4ff8b06dab3924e72c11, type: 3}
-  - {fileID: 21300000, guid: f3318218457e4ef6a1a72122df607ac4, type: 3}
-  - {fileID: 21300000, guid: 67cb64f5192448208a643f174f9a3d5b, type: 3}
+  - {fileID: -2031593294, guid: 6975c7852121be64b8a20ee32c614cdb, type: 3}
+  - {fileID: 1920521476, guid: 6975c7852121be64b8a20ee32c614cdb, type: 3}
+  - {fileID: 782891751, guid: 6975c7852121be64b8a20ee32c614cdb, type: 3}
+  - {fileID: -889161794, guid: 6975c7852121be64b8a20ee32c614cdb, type: 3}
   minFrameInterval: 0.18
   maxFrameInterval: 0.26
   defaultSpriteScale: {x: 0.17, y: 0.17, z: 0.17}
+  defaultSpriteLocalY: 0
+  minimumSpriteLocalY: -0.3
   monochromeFrameTint: {r: 1, g: 1, b: 1, a: 1}
   baseLightIntensity: 1.5
   baseLightRange: 2.2

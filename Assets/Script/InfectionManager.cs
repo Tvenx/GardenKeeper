@@ -242,7 +242,9 @@ public class InfectionManager : MonoBehaviour
 
     private void PlayAudio(AudioClip clip, float volume)
     {
-        if (clip == null || infectionAudioSource == null)
+        if (clip == null ||
+            infectionAudioSource == null ||
+            infectionAudioSource.isPlaying)
         {
             return;
         }

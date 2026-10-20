@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 
 public enum GameDefeatReason
@@ -10,6 +11,9 @@ public enum GameDefeatReason
 [DisallowMultipleComponent]
 public class GameDefeatManager : MonoBehaviour
 {
+    [SerializeField] private GameObject gameOverPanel;
+    [SerializeField] private TextMeshProUGUI reasonHint;
+
     public bool IsDefeated { get; private set; }
 
     public GameDefeatReason DefeatReason { get; private set; }
@@ -48,6 +52,9 @@ public class GameDefeatManager : MonoBehaviour
         Debug.LogError(message, context != null ? context : this);
 
         DefeatTriggered?.Invoke(reason, details);
+
+        gameOverPanel.SetActive(true);
+        reasonHint.text = message;
 
         return true;
     }

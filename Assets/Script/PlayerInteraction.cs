@@ -17,6 +17,9 @@ public class PlayerInteraction : MonoBehaviour
 
     [SerializeField] private LayerMask interactionLayers = ~0;
 
+    [Header("Animation")]
+    [SerializeField] private Animator animator;
+
     private InteractableObject currentTarget;
     private PlayerInputComponent playerInput;
     private InputAction interactAction;
@@ -182,6 +185,7 @@ public class PlayerInteraction : MonoBehaviour
             if (candleUse != null)
             {
                 candleUse.TryUseCandle();
+                animator.SetTrigger("UseCandle");
             }
 
             return;
