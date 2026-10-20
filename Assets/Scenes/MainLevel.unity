@@ -409,46 +409,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43e07ae9a9b55c741b27f73c903645a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InfectableTree
---- !u!21 &82288041
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Hidden/DarkBringerRefined_1_2
-  m_Shader: {fileID: 4800000, guid: 99d80d0fdb7c6724c89e77d81bbc026a, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _BayerTex:
-        m_Texture: {fileID: 2800000, guid: eac7505667530464e91debe0b4a8492b, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _Lut2D:
-        m_Texture: {fileID: 692115170}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats: []
-    m_Colors: []
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &135352579
 GameObject:
   m_ObjectHideFlags: 0
@@ -871,6 +831,46 @@ Transform:
   m_Children: []
   m_Father: {fileID: 532169852}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!21 &264206632
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Hidden/DarkBringerRefined_1_2
+  m_Shader: {fileID: 4800000, guid: 99d80d0fdb7c6724c89e77d81bbc026a, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BayerTex:
+        m_Texture: {fileID: 2800000, guid: eac7505667530464e91debe0b4a8492b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Lut2D:
+        m_Texture: {fileID: 789389637}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats: []
+    m_Colors: []
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1001 &277783117
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3332,7 +3332,12 @@ Transform:
   - {fileID: 2003133122}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!28 &692115170
+--- !u!4 &769386035 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1580886973626801384, guid: 765475af9abd60a4c82919701b249985, type: 3}
+  m_PrefabInstance: {fileID: 4313921116670646787}
+  m_PrefabAsset: {fileID: 0}
+--- !u!28 &789389637
 Texture2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3378,11 +3383,6 @@ Texture2D:
     offset: 0
     size: 0
     path: 
---- !u!4 &769386035 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1580886973626801384, guid: 765475af9abd60a4c82919701b249985, type: 3}
-  m_PrefabInstance: {fileID: 4313921116670646787}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &810760719 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7111552123950175587, guid: 1df8e57d412cfb548a45feebf5c0e8d1, type: 3}
@@ -5148,7 +5148,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Picturesque.Darkbringer.DarkbringerEffect
   sha: {fileID: 4800000, guid: 99d80d0fdb7c6724c89e77d81bbc026a, type: 3}
-  mat: {fileID: 82288041}
+  mat: {fileID: 264206632}
   flatLut: {fileID: 2800000, guid: 7b5dc218569c7b640b853c968b15ad0d, type: 3}
   bayerTexture: {fileID: 2800000, guid: eac7505667530464e91debe0b4a8492b, type: 3}
   ColorBleed: -1.5
@@ -5254,8 +5254,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RedPreserveEffect
   shader: {fileID: 4800000, guid: 26ef955f71bb5ee4280c3eb07c327f7c, type: 3}
-  redThreshold: 0.952
-  redSoftness: 0.5
+  redThreshold: 0.113
+  redSoftness: 0.058
 --- !u!4 &1404055533 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1634494503746729580, guid: 765475af9abd60a4c82919701b249985, type: 3}
@@ -5869,7 +5869,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 15
+  MaxDistance: 6.8
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
