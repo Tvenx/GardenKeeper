@@ -27,12 +27,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 496062431835995515}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3777759519795429220}
+  m_Father: {fileID: 3358200864678800423}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &634211199410189374
 MeshFilter:
@@ -138,12 +138,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 938819772710580340}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 1.5, z: 0.5}
   m_LocalScale: {x: 0.69306, y: 0.67209, z: 0.29821}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3777759519795429220}
+  m_Father: {fileID: 3358200864678800423}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8015937697832504350
 MeshFilter:
@@ -254,8 +254,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 632591927338487137}
-  - {fileID: 7475566263659534287}
+  - {fileID: 3358200864678800423}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!195 &4971521781321282
@@ -299,6 +298,10 @@ MonoBehaviour:
   captureRayOrigin: {fileID: 0}
   audioController: {fileID: 6044653301745553094}
   defeatManager: {fileID: 0}
+  statue: {fileID: 0}
+  monsterVisualRoot: {fileID: 3463849693148939482}
+  offeringsRequiredToActivate: 0
+  speedPerBloodOffering: 2
   destinationRefreshInterval: 0.2
   agentAngularSpeed: 720
   baseSpeed: 2
@@ -306,6 +309,7 @@ MonoBehaviour:
   secondsPerSpeedIncrease: 10
   limitMaximumSpeed: 0
   maximumSpeed: 20
+  resetTemporarySpeedWhenTreeCuredByCandle: 1
   captureCheckInterval: 0.1
   captureRayDistance: 1.6
   captureRayHeight: 1.1
@@ -344,3 +348,36 @@ MonoBehaviour:
   scareSound: {fileID: 0}
   scareVolume: 1
   worldAudioSource: {fileID: 0}
+--- !u!1 &3463849693148939482
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3358200864678800423}
+  m_Layer: 0
+  m_Name: VisualRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3358200864678800423
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3463849693148939482}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 632591927338487137}
+  - {fileID: 7475566263659534287}
+  m_Father: {fileID: 3777759519795429220}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

@@ -178,6 +178,20 @@ public class StatueCandleStation : InteractableObject
         inventory.ClearItem();
         currentBloodDeposits++;
 
+        MonsterController[] monsters =
+    FindObjectsByType<MonsterController>(
+        FindObjectsSortMode.None
+    );
+
+        foreach (MonsterController monster in monsters)
+        {
+            if (monster != null)
+            {
+                monster.NotifyBloodOfferingMade(this);
+            }
+        }
+
+
         int required = Mathf.Max(1, requiredBloodDeposits);
 
         Debug.Log(

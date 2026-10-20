@@ -37,6 +37,8 @@ public class PlayerCandleUse : MonoBehaviour
         Vector3 center = GetCleanseCenter();
         float radiusSquared = cleanseRadius * cleanseRadius;
 
+        bool curedAnyTree = false;
+
         InfectableTree[] trees =
             FindObjectsByType<InfectableTree>(
                 FindObjectsSortMode.None
@@ -51,28 +53,40 @@ public class PlayerCandleUse : MonoBehaviour
 
             Vector3 offset = tree.transform.position - center;
 
-            if (offset.sqrMagnitude <= radiusSquared)
+            if (offset.sqrMagnitude <= radiusSquared &&
+                tree.Cure())
             {
-                tree.Cure();
+                curedAnyTree = true;
             }
         }
 
-
         MonsterController[] monsters =
-    FindObjectsByType<MonsterController>(
-        FindObjectsSortMode.None
-    );
+            FindObjectsByType<MonsterController>(
+                FindObjectsSortMode.None
+            );
 
         foreach (MonsterController monster in monsters)
         {
-            if (monster != null)
+            if (monster == null)
             {
-                monster.TryTeleportFromCandle(transform.position);
+                continue;
             }
+
+            // Reset temporary speed if the candle actually cured
+            // an infected tree and the monster's checkbox is enabled.
+            if (curedAnyTree)
+            {
+                monster.NotifyTreeCuredByCandle();
+            }
+
+            // If the monster is close enough, the candle also
+            // teleports it and resets temporary speed regardless
+            // of the tree-cure checkbox.
+            monster.TryTeleportFromCandle(transform.position);
         }
 
-
-        // The candle is consumed even if there are no infected trees.
+        // The candle is consumed even when no trees were cured
+        // and even when no monster was close enough to teleport.
         inventory.ClearItem();
 
         return true;

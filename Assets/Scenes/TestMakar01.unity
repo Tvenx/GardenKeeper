@@ -204,6 +204,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingChancePercent
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingCheckInterval
+      value: 5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -271,6 +279,14 @@ PrefabInstance:
     - target: {fileID: 2133625942693780792, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingChancePercent
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingCheckInterval
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -467,6 +483,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingChancePercent
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingCheckInterval
+      value: 5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -534,6 +558,14 @@ PrefabInstance:
     - target: {fileID: 2133625942693780792, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingChancePercent
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingCheckInterval
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -747,6 +779,14 @@ PrefabInstance:
     - target: {fileID: 2133625942693780792, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingChancePercent
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingCheckInterval
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1042,6 +1082,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingChancePercent
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingCheckInterval
+      value: 5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1121,6 +1169,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingChancePercent
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingCheckInterval
+      value: 5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1189,6 +1245,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingChancePercent
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingCheckInterval
+      value: 5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1256,6 +1320,14 @@ PrefabInstance:
     - target: {fileID: 2133625942693780792, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingChancePercent
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885650388478873083, guid: 76baaf3a5f70ae0438360a6d511703a0, type: 3}
+      propertyPath: bleedingCheckInterval
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1516,7 +1588,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3777759519795429220, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 45
+      value: 15.5
       objectReference: {fileID: 0}
     - target: {fileID: 3777759519795429220, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1524,7 +1596,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3777759519795429220, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 2
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 3777759519795429220, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1559,6 +1631,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 3789349808142774409}
     - target: {fileID: 4833979587932361547, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
+      propertyPath: statue
+      value: 
+      objectReference: {fileID: 1190470134}
+    - target: {fileID: 4833979587932361547, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
+      propertyPath: baseSpeed
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4833979587932361547, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
       propertyPath: playerCamera
       value: 
       objectReference: {fileID: 318356464}
@@ -1570,6 +1650,30 @@ PrefabInstance:
       propertyPath: playerVisionOrigin
       value: 
       objectReference: {fileID: 3789349808142774408}
+    - target: {fileID: 4833979587932361547, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
+      propertyPath: stalkerModeEnabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4833979587932361547, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
+      propertyPath: speedPerBloodOffering
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4833979587932361547, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
+      propertyPath: stalkerMinimumDistance
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4833979587932361547, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
+      propertyPath: speedIncreasePerInterval
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4833979587932361547, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
+      propertyPath: destinationRefreshInterval
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4833979587932361547, guid: a2fc6c1215900b14abc020d174510a11, type: 3}
+      propertyPath: offeringsRequiredToActivate
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1628,6 +1732,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5592840125692942895, guid: 3c6c390ff3ac40f4c8fa8c8364676354, type: 3}
+      propertyPath: canLose
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5592840125692942895, guid: 3c6c390ff3ac40f4c8fa8c8364676354, type: 3}
       propertyPath: defeatManager
       value: 
       objectReference: {fileID: 8243708789358498281}
@@ -1674,6 +1782,14 @@ PrefabInstance:
     - target: {fileID: 5592840125692942895, guid: 3c6c390ff3ac40f4c8fa8c8364676354, type: 3}
       propertyPath: loseAtInfectedPercentage
       value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 5592840125692942895, guid: 3c6c390ff3ac40f4c8fa8c8364676354, type: 3}
+      propertyPath: randomInfectionIntervalMax
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5592840125692942895, guid: 3c6c390ff3ac40f4c8fa8c8364676354, type: 3}
+      propertyPath: randomInfectionIntervalMin
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

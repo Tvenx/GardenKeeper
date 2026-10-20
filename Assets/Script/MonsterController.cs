@@ -1,3 +1,4 @@
+
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -13,6 +14,24 @@ public class MonsterController : MonoBehaviour
     [SerializeField] private Transform captureRayOrigin;
     [SerializeField] private MonsterAudioController audioController;
     [SerializeField] private GameDefeatManager defeatManager;
+    [SerializeField] private StatueCandleStation statue;
+
+    [Tooltip("Assign the monster model child, not this root object.")]
+    [SerializeField] private GameObject monsterVisualRoot;
+
+    [Header("Blood Offering Activation")]
+    [Min(0)]
+    [SerializeField] private int offeringsRequiredToActivate = 0;
+
+    [Min(0f)]
+    [SerializeField] private float speedPerBloodOffering = 2f;
+
+    [Header("Stalker Mode (Testing)")]
+    [Tooltip("When enabled, the monster keeps its distance until the player looks at it. Candle teleport re-enables the restriction.")]
+    [SerializeField] private bool stalkerModeEnabled = false;
+
+    [Min(0.1f)]
+    [SerializeField] private float stalkerMinimumDistance = 12f;
 
     [Header("Chase")]
     [Min(0.05f)]
@@ -35,6 +54,9 @@ public class MonsterController : MonoBehaviour
 
     [Min(0.1f)]
     [SerializeField] private float maximumSpeed = 20f;
+
+    [Header("Candle Speed Reset")]
+    [SerializeField] private bool resetTemporarySpeedWhenTreeCuredByCandle = true;
 
     [Header("Capture Ray")]
     [Min(0.05f)]
@@ -82,15 +104,14 @@ public class MonsterController : MonoBehaviour
     [Min(0f)]
     [SerializeField] private float monsterVisionTargetHeight = 1.2f;
 
-    [Min(0f)]
-    [SerializeField] private float unseenSecondsForScareSound = 20f;
-
     [SerializeField] private LayerMask visionLayers = ~0;
 
     [Header("Gizmos")]
     [SerializeField] private bool showGizmos = true;
 
     public float CurrentSpeed { get; private set; }
+
+    // Temporary speed bonus gained through elapsed time.
     public float CurrentSpeedBonus { get; private set; }
 
     public float SpeedProgressElapsed => speedProgressElapsed;
@@ -104,10 +125,25 @@ public class MonsterController : MonoBehaviour
     public bool IsAgentOnNavMesh =>
         agent != null && agent.isOnNavMesh;
 
+    public bool IsActivated => isActivated;
+
+    public int CurrentBloodOfferings =>
+        statue != null
+            ? Mathf.Max(0, statue.CurrentBloodDeposits)
+            : 0;
+
+    public float EffectiveBaseSpeed =>
+        GetBaseSpeedWithOfferingBonus();
+
     private NavMeshAgent agent;
 
     private bool initialized;
     private bool caughtPlayer;
+    private bool isActivated;
+
+    private bool stalkerRestrictionActive;
+    private bool lastStalkerModeEnabled;
+    private float originalAgentStoppingDistance;
 
     private float speedProgressElapsed;
     private float destinationTimer;
@@ -136,6 +172,12 @@ public class MonsterController : MonoBehaviour
     private float totalEligibleNavMeshArea;
     private bool navMeshTriangleCacheReady;
 
+    private Renderer[] cachedRenderers;
+    private bool[] originalRendererStates;
+
+    private Collider[] cachedColliders;
+    private bool[] originalColliderStates;
+
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -148,6 +190,11 @@ public class MonsterController : MonoBehaviour
         if (defeatManager == null)
         {
             defeatManager = FindFirstObjectByType<GameDefeatManager>();
+        }
+
+        if (statue == null)
+        {
+            statue = FindFirstObjectByType<StatueCandleStation>();
         }
     }
 
@@ -196,9 +243,19 @@ public class MonsterController : MonoBehaviour
             defeatManager = FindFirstObjectByType<GameDefeatManager>();
         }
 
+        if (statue == null && offeringsRequiredToActivate > 0)
+        {
+            Debug.LogWarning(
+                "MonsterController: Assign the statue to control monster activation.",
+                this
+            );
+        }
+
         agent.angularSpeed = agentAngularSpeed;
         agent.updateRotation = true;
         agent.isStopped = false;
+        originalAgentStoppingDistance = agent.stoppingDistance;
+        lastStalkerModeEnabled = stalkerModeEnabled;
 
         if (!agent.isOnNavMesh)
         {
@@ -231,12 +288,10 @@ public class MonsterController : MonoBehaviour
             );
         }
 
+        CacheMonsterComponents();
+        SetMonsterVisualActive(false);
+
         BuildNavMeshTriangleCache();
-
-        CurrentSpeed = Mathf.Max(0.1f, baseSpeed);
-        agent.speed = CurrentSpeed;
-
-        agent.SetDestination(player.position);
 
         destinationTimer = 0f;
         captureCheckTimer = 0f;
@@ -246,8 +301,14 @@ public class MonsterController : MonoBehaviour
         PlayerCurrentlyVisible = false;
         initialized = true;
 
-        // Check visibility immediately, including the first encounter.
-        ScanPlayerVision();
+        // The monster waits here until the offering requirement is met.
+        agent.isStopped = true;
+        ResetSpeedProgression();
+
+        if (HasRequiredOfferings())
+        {
+            ActivateMonster();
+        }
     }
 
     private void Update()
@@ -267,17 +328,266 @@ public class MonsterController : MonoBehaviour
             return;
         }
 
+        HandleStalkerModeSettingChange();
+
+        // Do not move, accelerate or scan while waiting for offerings.
+        if (!isActivated)
+        {
+            if (!HasRequiredOfferings())
+            {
+                return;
+            }
+
+            ActivateMonster();
+        }
+
         float deltaTime = Time.deltaTime;
 
-        UpdateSpeedProgression(deltaTime);
+        // Stalker mode pauses time-based acceleration while the monster is
+        // restricted. The timer starts/resumes only after the restriction lifts.
+        if (!stalkerRestrictionActive)
+        {
+            UpdateSpeedProgression(deltaTime);
+        }
+
         UpdateChaseDestination(deltaTime);
         UpdateCaptureRay(deltaTime);
         UpdateVisionScan(deltaTime);
     }
 
     // ---------------------------------------------------------
+    // Activation through blood offerings
+    // ---------------------------------------------------------
+
+    private bool HasRequiredOfferings()
+    {
+        int required = Mathf.Max(0, offeringsRequiredToActivate);
+
+        if (required == 0)
+        {
+            return true;
+        }
+
+        return statue != null &&
+               statue.CurrentBloodDeposits >= required;
+    }
+
+    public void NotifyBloodOfferingMade(
+    StatueCandleStation offeringStatue)
+    {
+        if (offeringStatue == null)
+        {
+            return;
+        }
+
+        // Use the exact statue that received the offering.
+        statue = offeringStatue;
+
+        if (!initialized || caughtPlayer)
+        {
+            return;
+        }
+
+        if (defeatManager != null && defeatManager.IsDefeated)
+        {
+            return;
+        }
+
+        if (!isActivated)
+        {
+            if (HasRequiredOfferings())
+            {
+                ActivateMonster();
+
+                Debug.Log(
+                    $"Monster activated after {CurrentBloodOfferings} blood offering(s).",
+                    this
+                );
+            }
+
+            return;
+        }
+
+        // Recalculate speed immediately after a new offering.
+        // Existing temporary acceleration is preserved.
+        UpdateSpeedProgression(0f);
+    }
+
+    private void ActivateMonster()
+    {
+        if (isActivated)
+        {
+            return;
+        }
+
+        isActivated = true;
+
+        stalkerRestrictionActive = stalkerModeEnabled;
+        ApplyStalkerStoppingDistance();
+
+        SetMonsterVisualActive(true);
+        ResetSpeedProgression();
+
+        destinationTimer = 0f;
+
+        if (agent != null && agent.isOnNavMesh)
+        {
+            agent.isStopped = false;
+
+            if (player != null)
+            {
+                agent.SetDestination(player.position);
+            }
+        }
+
+        // Check immediately on activation, so the first sighting
+        // can play the scare sound without waiting for another interval.
+        ScanPlayerVision();
+    }
+
+    // ---------------------------------------------------------
+    // Monster visual activation
+    // ---------------------------------------------------------
+
+    private void CacheMonsterComponents()
+    {
+        cachedRenderers = GetComponentsInChildren<Renderer>(true);
+        originalRendererStates = new bool[cachedRenderers.Length];
+
+        for (int i = 0; i < cachedRenderers.Length; i++)
+        {
+            originalRendererStates[i] = cachedRenderers[i].enabled;
+        }
+
+        cachedColliders = GetComponentsInChildren<Collider>(true);
+        originalColliderStates = new bool[cachedColliders.Length];
+
+        for (int i = 0; i < cachedColliders.Length; i++)
+        {
+            originalColliderStates[i] = cachedColliders[i].enabled;
+        }
+    }
+
+    private void SetMonsterVisualActive(bool active)
+    {
+        // Never deactivate the GameObject that owns this controller.
+        bool hasSeparateVisualRoot =
+            monsterVisualRoot != null &&
+            monsterVisualRoot != gameObject;
+
+        if (hasSeparateVisualRoot)
+        {
+            monsterVisualRoot.SetActive(active);
+        }
+        else if (cachedRenderers != null)
+        {
+            // Fallback if no dedicated visual child was assigned.
+            for (int i = 0; i < cachedRenderers.Length; i++)
+            {
+                if (cachedRenderers[i] != null)
+                {
+                    cachedRenderers[i].enabled =
+                        active && originalRendererStates[i];
+                }
+            }
+        }
+
+        // An inactive monster should not block vision rays or
+        // interact with the player through its physical colliders.
+        if (cachedColliders != null)
+        {
+            for (int i = 0; i < cachedColliders.Length; i++)
+            {
+                if (cachedColliders[i] != null)
+                {
+                    cachedColliders[i].enabled =
+                        active && originalColliderStates[i];
+                }
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Stalker mode
+    // ---------------------------------------------------------
+
+    private void HandleStalkerModeSettingChange()
+    {
+        if (stalkerModeEnabled == lastStalkerModeEnabled)
+        {
+            return;
+        }
+
+        lastStalkerModeEnabled = stalkerModeEnabled;
+
+        // If toggled before activation, ActivateMonster will use the new value.
+        if (!isActivated)
+        {
+            return;
+        }
+
+        if (stalkerModeEnabled)
+        {
+            SetStalkerRestriction(true);
+        }
+        else
+        {
+            SetStalkerRestriction(false);
+        }
+    }
+
+    private void SetStalkerRestriction(bool active)
+    {
+        bool wasRestricted = stalkerRestrictionActive;
+        stalkerRestrictionActive = stalkerModeEnabled && active;
+        ApplyStalkerStoppingDistance();
+
+        // Play the scare sound exactly when the stalking restriction ends.
+        // No visibility timer is involved. This also covers disabling the
+        // stalker mode from the Inspector while the restriction is active.
+        if (wasRestricted && !stalkerRestrictionActive && audioController != null)
+        {
+            audioController.PlayScareSound();
+        }
+
+        if (agent != null && agent.isOnNavMesh && player != null)
+        {
+            destinationTimer = 0f;
+            agent.SetDestination(player.position);
+        }
+    }
+
+    private void ApplyStalkerStoppingDistance()
+    {
+        if (agent == null)
+        {
+            return;
+        }
+
+        agent.stoppingDistance = stalkerRestrictionActive && stalkerModeEnabled
+            ? Mathf.Max(0.1f, stalkerMinimumDistance)
+            : originalAgentStoppingDistance;
+    }
+
+    // ---------------------------------------------------------
     // Continuous speed progression
     // ---------------------------------------------------------
+
+    private float GetBaseSpeedWithOfferingBonus()
+    {
+        if (!isActivated)
+            return Mathf.Max(0.1f, baseSpeed);
+
+        int offeringsAfterActivation = Mathf.Max(
+            0,
+            CurrentBloodOfferings - Mathf.Max(0, offeringsRequiredToActivate)
+        );
+
+        float permanentBonus =
+            Mathf.Max(0f, speedPerBloodOffering) * offeringsAfterActivation;
+
+        return Mathf.Max(0.1f, baseSpeed) + permanentBonus;
+    }
 
     private void UpdateSpeedProgression(float deltaTime)
     {
@@ -285,22 +595,30 @@ public class MonsterController : MonoBehaviour
 
         float interval = Mathf.Max(0.1f, secondsPerSpeedIncrease);
 
-        float bonus =
+        // The temporary bonus grows continuously rather than in steps.
+        float temporaryBonus =
             Mathf.Max(0f, speedIncreasePerInterval) *
             (speedProgressElapsed / interval);
 
-        float speed = Mathf.Max(0.1f, baseSpeed) + bonus;
+        float effectiveBaseSpeed = GetBaseSpeedWithOfferingBonus();
+
+        float speed = effectiveBaseSpeed + temporaryBonus;
 
         if (limitMaximumSpeed)
         {
             speed = Mathf.Min(
                 speed,
-                Mathf.Max(baseSpeed, maximumSpeed)
+                Mathf.Max(effectiveBaseSpeed, maximumSpeed)
             );
         }
 
         CurrentSpeed = speed;
-        CurrentSpeedBonus = speed - Mathf.Max(0.1f, baseSpeed);
+
+        // Keep the existing property as the actual temporary bonus.
+        CurrentSpeedBonus = Mathf.Max(
+            0f,
+            speed - effectiveBaseSpeed
+        );
 
         if (agent != null)
         {
@@ -312,11 +630,36 @@ public class MonsterController : MonoBehaviour
     {
         speedProgressElapsed = 0f;
         CurrentSpeedBonus = 0f;
-        CurrentSpeed = Mathf.Max(0.1f, baseSpeed);
+
+        // Permanent offering bonuses remain after a reset.
+        CurrentSpeed = GetBaseSpeedWithOfferingBonus();
 
         if (agent != null)
         {
             agent.speed = CurrentSpeed;
+        }
+    }
+
+    // Called when a candle successfully cures at least one infected tree.
+    public void NotifyTreeCuredByCandle()
+    {
+        if (!initialized ||
+            !isActivated ||
+            !resetTemporarySpeedWhenTreeCuredByCandle)
+        {
+            return;
+        }
+
+        ResetSpeedProgression();
+
+        // Keep the monster chasing after the speed reset.
+        destinationTimer = 0f;
+
+        if (agent != null &&
+            agent.isOnNavMesh &&
+            player != null)
+        {
+            agent.SetDestination(player.position);
         }
     }
 
@@ -338,7 +681,9 @@ public class MonsterController : MonoBehaviour
             destinationRefreshInterval
         );
 
-        if (agent.isOnNavMesh && player != null && !agent.isStopped)
+        if (agent.isOnNavMesh &&
+            player != null &&
+            !agent.isStopped)
         {
             agent.SetDestination(player.position);
         }
@@ -416,13 +761,14 @@ public class MonsterController : MonoBehaviour
 
         debugCaptureRayStart = origin;
         debugCaptureRayEnd = closestPoint;
+
         debugCaptureRayHitPlayer =
             closestTransform != null &&
             IsPartOfPlayer(closestTransform);
 
         hasDebugCaptureRay = true;
 
-        // The nearest collider blocks the ray.
+        // The closest collider blocks the ray.
         if (debugCaptureRayHitPlayer)
         {
             TriggerMonsterDefeat();
@@ -509,29 +855,23 @@ public class MonsterController : MonoBehaviour
 
     private void ScanPlayerVision()
     {
-        bool wasVisible = PlayerCurrentlyVisible;
         bool isVisible = EvaluatePlayerVisibility();
 
         if (isVisible)
         {
-            bool firstDiscovery = !hasSeenPlayerAtLeastOnce;
-
-            bool returnedAfterLongAbsence =
-                hasSeenPlayerAtLeastOnce &&
-                !wasVisible &&
-                unseenTime >= Mathf.Max(0f, unseenSecondsForScareSound);
-
-            if ((firstDiscovery || returnedAfterLongAbsence) &&
-                audioController != null)
-            {
-                audioController.PlayScareSound();
-            }
-
             hasSeenPlayerAtLeastOnce = true;
             unseenTime = 0f;
         }
 
         PlayerCurrentlyVisible = isVisible;
+
+        // The same visibility check removes the stalking restriction.
+        // SetStalkerRestriction plays the scare sound on that transition.
+        // No first-sighting or elapsed-time sound logic remains.
+        if (isVisible && stalkerRestrictionActive)
+        {
+            SetStalkerRestriction(false);
+        }
     }
 
     private bool EvaluatePlayerVisibility()
@@ -669,7 +1009,7 @@ public class MonsterController : MonoBehaviour
     {
         if (deriveVisionAnglesFromCameraFov && playerCamera != null)
         {
-            // Per requested behavior, use half FOV for both axes.
+            // Use half of the camera FOV for both axes as requested.
             horizontal = playerCamera.fieldOfView * 0.5f;
             vertical = playerCamera.fieldOfView * 0.5f;
         }
@@ -684,12 +1024,13 @@ public class MonsterController : MonoBehaviour
     }
 
     // ---------------------------------------------------------
-    // Candle: teleport and reset speed
+    // Candle: teleport and temporary speed reset
     // ---------------------------------------------------------
 
     public bool TryTeleportFromCandle(Vector3 candleUserPosition)
     {
         if (!initialized ||
+            !isActivated ||
             caughtPlayer ||
             player == null ||
             agent == null ||
@@ -732,8 +1073,20 @@ public class MonsterController : MonoBehaviour
         agent.ResetPath();
         agent.isStopped = false;
 
-        // A successful candle teleport removes all accumulated speed bonus.
+        // A successful teleport from a candle ALWAYS resets temporary
+        // speed. This is independent of the tree-cure checkbox.
         ResetSpeedProgression();
+
+        // In stalker mode, every successful candle teleport starts a new
+        // stalking phase, until the player sees the monster again.
+        if (stalkerModeEnabled)
+        {
+            SetStalkerRestriction(true);
+        }
+        else
+        {
+            SetStalkerRestriction(false);
+        }
 
         destinationTimer = 0f;
         agent.SetDestination(player.position);
@@ -942,7 +1295,6 @@ public class MonsterController : MonoBehaviour
             return;
         }
 
-        // Monster's forward capture ray.
         Vector3 captureOrigin = captureRayOrigin != null
             ? captureRayOrigin.position
             : transform.position + Vector3.up * captureRayHeight;
@@ -968,6 +1320,20 @@ public class MonsterController : MonoBehaviour
             transform.position,
             candleReactionRadius
         );
+
+        if (stalkerModeEnabled && player != null)
+        {
+            // Orange while the stalking restriction is active; green after
+            // the player has spotted the monster.
+            Gizmos.color = Application.isPlaying && !stalkerRestrictionActive
+                ? Color.green
+                : new Color(1f, 0.5f, 0f, 1f);
+
+            Gizmos.DrawWireSphere(
+                player.position,
+                Mathf.Max(0.1f, stalkerMinimumDistance)
+            );
+        }
 
         if (player != null)
         {
