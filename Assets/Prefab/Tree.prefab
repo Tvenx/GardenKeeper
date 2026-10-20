@@ -428,7 +428,7 @@ MonoBehaviour:
   infectedVisual: {fileID: 6957991776025683809}
   bleedingVisual: {fileID: 3941076729632509796}
   healingEffect: {fileID: 1500037129808853855}
-  healingEffectDuration: 2
+  healingEffectDuration: 6
   hasEverBeenInfected: 0
   isCurrentlyInfected: 0
   isBleeding: 0
