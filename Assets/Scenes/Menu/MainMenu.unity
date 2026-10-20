@@ -500,8 +500,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 774836058}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 0.33333346}
+  m_AnchorMax: {x: 1, y: 0.99999976}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -769,9 +769,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 802174737}
-        m_TargetAssemblyTypeName: MainMenuUI, Assembly-CSharp
-        m_MethodName: StartGame
+      - m_Target: {fileID: 902634101}
+        m_TargetAssemblyTypeName: SceneTransitionManager, Assembly-CSharp
+        m_MethodName: LoadGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3062,7 +3062,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &500000691
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6994,7 +6994,7 @@ MonoBehaviour:
   resolutionPanel: {fileID: 500000690}
   soundPanel: {fileID: 500000850}
   languagePanel: {fileID: 500001330}
-  gameSceneName: Game
+  gameSceneName: MainLevel
 --- !u!4 &802174738
 Transform:
   m_ObjectHideFlags: 0
@@ -7034,6 +7034,52 @@ MonoBehaviour:
   sfxVolumeText: {fileID: 500001035}
   previewAudioSource: {fileID: 46796804}
   previewClip: {fileID: 8300000, guid: ea473a37f37095f4da2e230eeee421bf, type: 3}
+--- !u!1 &902634100
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 902634102}
+  - component: {fileID: 902634101}
+  m_Layer: 0
+  m_Name: Scenemanager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &902634101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 902634100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba8160142cf9dd749ae0f43628024bfe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneTransitionManager
+  mainMenuSceneName: MainMenu
+  gameSceneName: MainLevel
+--- !u!4 &902634102
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 902634100}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 461.4039, y: 238.85876, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &996973541
 GameObject:
   m_ObjectHideFlags: 0
@@ -7498,8 +7544,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 393066137}
   m_HandleRect: {fileID: 393066136}
   m_Direction: 2
-  m_Value: 0.9999994
-  m_Size: 0.6666667
+  m_Value: 0.9999997
+  m_Size: 0.66666645
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -7577,9 +7623,9 @@ RectTransform:
   m_Father: {fileID: 996973542}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -17, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1835992280
 MonoBehaviour:
@@ -7967,3 +8013,4 @@ SceneRoots:
   - {fileID: 350000011}
   - {fileID: 802174738}
   - {fileID: 46796805}
+  - {fileID: 902634102}
