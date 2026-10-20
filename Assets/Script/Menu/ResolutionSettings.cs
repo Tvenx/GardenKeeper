@@ -1,16 +1,15 @@
-
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ResolutionSettings : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] private TMP_Dropdown resolutionDropdown;
-    [SerializeField] private Toggle fullscreenToggle;
+    [SerializeField] private GameObject fullscreenCheckmark;
 
     private readonly List<Resolution> availableResolutions = new();
+    private bool selectedFullscreen;
 
     private const string ResolutionWidthKey = "ResolutionWidth";
     private const string ResolutionHeightKey = "ResolutionHeight";
@@ -20,9 +19,6 @@ public class ResolutionSettings : MonoBehaviour
     {
         LoadResolutions();
         LoadSettings();
-
-        resolutionDropdown.onValueChanged.AddListener(ApplyResolution);
-        fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
     }
 
     private void LoadResolutions()
@@ -30,37 +26,30 @@ public class ResolutionSettings : MonoBehaviour
         availableResolutions.Clear();
 
         var options = new List<string>();
-        Resolution[] resolutions = Screen.resolutions;
+        var seenResolutions = new HashSet<string>();
 
-        foreach (Resolution resolution in resolutions)
+        foreach (Resolution resolution in Screen.resolutions)
         {
-            string option = $"{resolution.width} x {resolution.height}";
-
-            // Не добавляем одинаковые разрешения повторно.
-            if (options.Contains(option))
+            string key = $"{resolution.width}x{resolution.height}";
+            if (!seenResolutions.Add(key))
                 continue;
 
-            options.Add(option);
             availableResolutions.Add(resolution);
+            options.Add($"{resolution.width} x {resolution.height}");
         }
 
-        // Заполняем существующий Dropdown.
         resolutionDropdown.ClearOptions();
         resolutionDropdown.AddOptions(options);
     }
 
     private void LoadSettings()
     {
-        bool fullscreen = PlayerPrefs.GetInt(
+        selectedFullscreen = PlayerPrefs.GetInt(
             FullscreenKey, Screen.fullScreen ? 1 : 0) == 1;
+        fullscreenCheckmark.SetActive(selectedFullscreen);
 
-        fullscreenToggle.SetIsOnWithoutNotify(fullscreen);
-
-        int savedWidth = PlayerPrefs.GetInt(
-            ResolutionWidthKey, Screen.width);
-
-        int savedHeight = PlayerPrefs.GetInt(
-            ResolutionHeightKey, Screen.height);
+        int savedWidth = PlayerPrefs.GetInt(ResolutionWidthKey, Screen.width);
+        int savedHeight = PlayerPrefs.GetInt(ResolutionHeightKey, Screen.height);
 
         int index = availableResolutions.FindIndex(r =>
             r.width == savedWidth && r.height == savedHeight);
@@ -72,48 +61,68 @@ public class ResolutionSettings : MonoBehaviour
         }
 
         if (index < 0 && availableResolutions.Count > 0)
-            index = availableResolutions.Count - 1;
+            index = 0;
 
         if (index >= 0)
         {
             resolutionDropdown.SetValueWithoutNotify(index);
-            ApplyResolution(index);
+            resolutionDropdown.RefreshShownValue();
+            ApplyCurrentSettings();
+        }
+        else
+        {
+            Screen.fullScreen = selectedFullscreen;
         }
     }
 
-    public void ApplyResolution(int index)
+    // Called by the Full Screen button. The selection is applied with the Apply button.
+    public void fullScreen()
     {
+        selectedFullscreen = !selectedFullscreen;
+        fullscreenCheckmark.SetActive(selectedFullscreen);
+    }
+
+    // Kept for any existing Unity event bindings that still reference the previous method name.
+    public void SetFullscreen(bool isFullscreen)
+    {
+        selectedFullscreen = isFullscreen;
+        fullscreenCheckmark.SetActive(selectedFullscreen);
+    }
+
+    public void ApplySettings()
+    {
+        int index = resolutionDropdown.value;
+
+        if (index >= 0 && index < availableResolutions.Count)
+        {
+            Resolution resolution = availableResolutions[index];
+            Screen.SetResolution(
+                resolution.width,
+                resolution.height,
+                selectedFullscreen);
+
+            PlayerPrefs.SetInt(ResolutionWidthKey, resolution.width);
+            PlayerPrefs.SetInt(ResolutionHeightKey, resolution.height);
+        }
+        else
+        {
+            Screen.fullScreen = selectedFullscreen;
+        }
+
+        PlayerPrefs.SetInt(FullscreenKey, selectedFullscreen ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    private void ApplyCurrentSettings()
+    {
+        int index = resolutionDropdown.value;
         if (index < 0 || index >= availableResolutions.Count)
             return;
 
         Resolution resolution = availableResolutions[index];
-
         Screen.SetResolution(
             resolution.width,
             resolution.height,
-            fullscreenToggle.isOn);
-
-        PlayerPrefs.SetInt(ResolutionWidthKey, resolution.width);
-        PlayerPrefs.SetInt(ResolutionHeightKey, resolution.height);
-        PlayerPrefs.Save();
-    }
-
-    public void SetFullscreen(bool isFullscreen)
-    {
-        Screen.fullScreen = isFullscreen;
-
-        PlayerPrefs.SetInt(
-            FullscreenKey, isFullscreen ? 1 : 0);
-
-        PlayerPrefs.Save();
-    }
-
-    private void OnDestroy()
-    {
-        if (resolutionDropdown != null)
-            resolutionDropdown.onValueChanged.RemoveListener(ApplyResolution);
-
-        if (fullscreenToggle != null)
-            fullscreenToggle.onValueChanged.RemoveListener(SetFullscreen);
+            selectedFullscreen);
     }
 }
