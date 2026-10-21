@@ -70,7 +70,7 @@ public class PauseMenuUI : MonoBehaviour
 
     public void PauseGame()
     {
-        if (isPaused)
+        if (isPaused || PlayerInteraction.IsCandleAnimationPauseActive)
             return;
 
         isPaused = true;

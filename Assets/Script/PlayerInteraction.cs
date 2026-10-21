@@ -6,6 +6,11 @@ using PlayerInputComponent = GardenKeeper.Inputs.PlayerInput;
 [RequireComponent(typeof(PlayerInputComponent))]
 public class PlayerInteraction : MonoBehaviour
 {
+    private static readonly int UseCandleStateHash =
+        Animator.StringToHash("UseCandle");
+
+    public static bool IsCandleAnimationPauseActive { get; private set; }
+
     [Header("References")]
     [SerializeField] private PlayerInventory inventory;
     [SerializeField] private PlayerCandleUse candleUse;
@@ -23,6 +28,9 @@ public class PlayerInteraction : MonoBehaviour
     private InteractableObject currentTarget;
     private PlayerInputComponent playerInput;
     private InputAction interactAction;
+    private bool candleAnimationHasStarted;
+    private float previousTimeScale;
+    private AnimatorUpdateMode previousAnimatorUpdateMode;
 
     private GameObject lookedAtObject;
     private InteractableObject lookedAtInteractable;
@@ -83,11 +91,19 @@ public class PlayerInteraction : MonoBehaviour
 
     private void OnDisable()
     {
+        EndCandleAnimationPause();
         SetCurrentTarget(null);
     }
 
     private void Update()
     {
+        UpdateCandleAnimationPause();
+
+        if (IsCandleAnimationPauseActive || Time.timeScale == 0f)
+        {
+            return;
+        }
+
         if (inventory == null || rayOrigin == null)
         {
             lookedAtObject = null;
@@ -184,8 +200,20 @@ public class PlayerInteraction : MonoBehaviour
             // This also works while aiming at the statue.
             if (candleUse != null)
             {
-                candleUse.TryUseCandle();
-                animator.SetTrigger("UseCandle");
+                if (candleUse.TryUseCandle())
+                {
+                    if (animator == null)
+                    {
+                        Debug.LogError(
+                            "PlayerInteraction: Animator is missing.",
+                            this
+                        );
+                        return;
+                    }
+
+                    BeginCandleAnimationPause();
+                    animator.SetTrigger(UseCandleStateHash);
+                }
             }
 
             return;
@@ -197,6 +225,65 @@ public class PlayerInteraction : MonoBehaviour
         {
             hitTarget.Interact(inventory);
         }
+    }
+
+    private void BeginCandleAnimationPause()
+    {
+        previousTimeScale = Time.timeScale;
+        previousAnimatorUpdateMode = animator.updateMode;
+        candleAnimationHasStarted = false;
+        IsCandleAnimationPauseActive = true;
+
+        animator.updateMode = AnimatorUpdateMode.UnscaledTime;
+        Time.timeScale = 0f;
+    }
+
+    private void UpdateCandleAnimationPause()
+    {
+        if (!IsCandleAnimationPauseActive)
+        {
+            return;
+        }
+
+        if (animator == null)
+        {
+            EndCandleAnimationPause();
+            return;
+        }
+
+        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+
+        if (state.shortNameHash == UseCandleStateHash)
+        {
+            candleAnimationHasStarted = true;
+
+            if (state.normalizedTime >= 1f &&
+                !animator.IsInTransition(0))
+            {
+                EndCandleAnimationPause();
+            }
+        }
+        else if (candleAnimationHasStarted)
+        {
+            EndCandleAnimationPause();
+        }
+    }
+
+    private void EndCandleAnimationPause()
+    {
+        if (!IsCandleAnimationPauseActive)
+        {
+            return;
+        }
+
+        if (animator != null)
+        {
+            animator.updateMode = previousAnimatorUpdateMode;
+        }
+
+        Time.timeScale = previousTimeScale;
+        IsCandleAnimationPauseActive = false;
+        candleAnimationHasStarted = false;
     }
 
     public string GetCurrentActionDescription()

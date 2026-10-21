@@ -17,10 +17,20 @@ public class StatueCandleStation : InteractableObject
 
     [SerializeField] private int currentBloodDeposits;
 
+    [Header("Blood Level")]
+    [SerializeField] private Transform bloodCylinder;
+
+    [Min(0f)]
+    [SerializeField] private float minimumBloodHeight = 0.05f;
+
+    [Min(0f)]
+    [SerializeField] private float maximumBloodHeight = 0.8f;
+
     private readonly List<GameObject> spawnedCandles =
         new List<GameObject>();
 
     private bool hasWon;
+    private Vector3 bloodCylinderBaseLocalPosition;
 
     public int CurrentBloodDeposits => currentBloodDeposits;
 
@@ -40,7 +50,58 @@ public class StatueCandleStation : InteractableObject
     protected override void Awake()
     {
         base.Awake();
+        InitializeBloodCylinder();
         SpawnCandles();
+    }
+
+    private void InitializeBloodCylinder()
+    {
+        if (bloodCylinder == null)
+        {
+            Debug.LogError(
+                "StatueCandleStation: Blood Cylinder is missing.",
+                this
+            );
+
+            return;
+        }
+
+        bloodCylinderBaseLocalPosition =
+            bloodCylinder.localPosition -
+            Vector3.up * (bloodCylinder.localScale.y * 0.5f);
+
+        UpdateBloodCylinderHeight();
+    }
+
+    private void UpdateBloodCylinderHeight()
+    {
+        if (bloodCylinder == null)
+        {
+            return;
+        }
+
+        int required = RequiredBloodDeposits;
+        float progress = Mathf.Clamp01(
+            (float)currentBloodDeposits / required
+        );
+        float minimumHeight = Mathf.Max(0f, minimumBloodHeight);
+        float maximumHeight = Mathf.Max(
+            minimumHeight,
+            maximumBloodHeight
+        );
+        float height = Mathf.Lerp(
+            minimumHeight,
+            maximumHeight,
+            progress
+        );
+
+        Vector3 scale = bloodCylinder.localScale;
+        scale.y = height;
+        bloodCylinder.localScale = scale;
+
+        Vector3 position = bloodCylinderBaseLocalPosition;
+        position.y += height * 0.5f;
+        bloodCylinder.localPosition = position;
     }
 
     private void SpawnCandles()
@@ -177,6 +238,7 @@ public class StatueCandleStation : InteractableObject
 
         inventory.ClearItem();
         currentBloodDeposits++;
+        UpdateBloodCylinderHeight();
 
         MonsterController[] monsters =
     FindObjectsByType<MonsterController>(
