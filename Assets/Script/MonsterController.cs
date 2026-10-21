@@ -178,6 +178,10 @@ public class MonsterController : MonoBehaviour
     private Collider[] cachedColliders;
     private bool[] originalColliderStates;
 
+    private bool interactionPaused;
+
+    private Coroutine interactionPauseCoroutine;
+
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -311,6 +315,35 @@ public class MonsterController : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        MonsterInteractionPause.Register(this);
+
+    }
+
+    private void OnDisable()
+    {
+        if (audioController != null)
+        {
+            audioController.StopAllSounds();
+        }
+
+        MonsterInteractionPause.Unregister(this);
+
+        if (interactionPauseCoroutine != null)
+        {
+            StopCoroutine(interactionPauseCoroutine);
+            interactionPauseCoroutine = null;
+        }
+
+        interactionPaused = false;
+
+        if (agent != null && agent.enabled && agent.isOnNavMesh)
+        {
+            agent.isStopped = true;
+        }
+    }
+
     private void Update()
     {
         if (!initialized || caughtPlayer)
@@ -320,11 +353,16 @@ public class MonsterController : MonoBehaviour
 
         if (defeatManager != null && defeatManager.IsDefeated)
         {
-            if (agent.isOnNavMesh)
+            if (agent != null && agent.isOnNavMesh)
             {
                 agent.isStopped = true;
             }
 
+            return;
+        }
+
+        if (interactionPaused)
+        {
             return;
         }
 
@@ -343,8 +381,6 @@ public class MonsterController : MonoBehaviour
 
         float deltaTime = Time.deltaTime;
 
-        // Stalker mode pauses time-based acceleration while the monster is
-        // restricted. The timer starts/resumes only after the restriction lifts.
         if (!stalkerRestrictionActive)
         {
             UpdateSpeedProgression(deltaTime);
@@ -354,6 +390,62 @@ public class MonsterController : MonoBehaviour
         UpdateCaptureRay(deltaTime);
         UpdateVisionScan(deltaTime);
     }
+
+
+    public void PauseForInteraction(float duration)
+    {
+        if (!isActivated || caughtPlayer || !initialized)
+            return;
+
+        if (interactionPauseCoroutine != null)
+            StopCoroutine(interactionPauseCoroutine);
+
+        interactionPauseCoroutine = StartCoroutine(
+            InteractionPauseCoroutine(duration)
+        );
+    }
+
+   private System.Collections.IEnumerator InteractionPauseCoroutine(
+    float duration)
+{
+    interactionPaused = true;
+
+    if (agent != null && agent.enabled && agent.isOnNavMesh)
+    {
+        agent.isStopped = true;
+        agent.velocity = Vector3.zero;
+    }
+
+    yield return new WaitForSeconds(Mathf.Max(0f, duration));
+
+    interactionPaused = false;
+    interactionPauseCoroutine = null;
+
+    // Не возобновляем врага, если игра уже завершена.
+    if (caughtPlayer ||
+        !initialized ||
+        !isActivated ||
+        (defeatManager != null && defeatManager.IsDefeated))
+    {
+        if (agent != null && agent.enabled && agent.isOnNavMesh)
+        {
+            agent.isStopped = true;
+        }
+
+        yield break;
+    }
+
+    if (agent != null && agent.enabled && agent.isOnNavMesh)
+    {
+        agent.isStopped = false;
+
+        if (player != null)
+        {
+            destinationTimer = 0f;
+            agent.SetDestination(player.position);
+        }
+    }
+}
 
     // ---------------------------------------------------------
     // Activation through blood offerings
@@ -443,6 +535,11 @@ public class MonsterController : MonoBehaviour
         // Check immediately on activation, so the first sighting
         // can play the scare sound without waiting for another interval.
         ScanPlayerVision();
+    }
+
+    private void OnDestroy()
+    {
+        MonsterInteractionPause.Unregister(this);
     }
 
     // ---------------------------------------------------------
@@ -1071,7 +1168,7 @@ public class MonsterController : MonoBehaviour
         }
 
         agent.ResetPath();
-        agent.isStopped = false;
+        agent.isStopped = interactionPaused;
 
         // A successful teleport from a candle ALWAYS resets temporary
         // speed. This is independent of the tree-cure checkbox.
@@ -1431,11 +1528,5 @@ public class MonsterController : MonoBehaviour
         return cameraRotation * localDirection.normalized;
     }
 
-    private void OnDisable()
-    {
-        if (audioController != null)
-        {
-            audioController.StopAllSounds();
-        }
-    }
+    
 }

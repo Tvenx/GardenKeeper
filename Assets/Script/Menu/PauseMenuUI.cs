@@ -1,12 +1,12 @@
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections.Generic;
 
 public class PauseMenuUI : MonoBehaviour
 {
     [Header("Input")]
-    [SerializeField] private InputActionReference pauseAction;
+    [SerializeField] private InputActionReference backAction;
 
     [Header("Pause Menu")]
     [SerializeField] private GameObject pausePanel;
@@ -31,36 +31,41 @@ public class PauseMenuUI : MonoBehaviour
 
     private void OnEnable()
     {
-        if (pauseAction != null)
-            pauseAction.action.performed += OnPausePerformed;
+        if (backAction != null)
+        {
+            backAction.action.performed += OnBackPerformed;
+            backAction.action.Enable();
+        }
     }
 
     private void OnDisable()
     {
-        if (pauseAction != null)
-            pauseAction.action.performed -= OnPausePerformed;
+        if (backAction != null)
+        {
+            backAction.action.performed -= OnBackPerformed;
+        }
 
         if (isPaused)
-            ResumeGame();
+            RestoreGameState();
     }
 
-    private void OnPausePerformed(InputAction.CallbackContext context)
+    private void OnBackPerformed(InputAction.CallbackContext context)
+    {
+        if (isPaused)
+            HandlePauseInput();
+        else
+            PauseGame();
+    }
+
+    public void HandlePauseInput()
     {
         if (!isPaused)
-        {
-            PauseGame();
             return;
-        }
 
-        // Escape returns to the previous tab.
         if (currentPanel != pausePanel)
-        {
             Back();
-        }
         else
-        {
             ResumeGame();
-        }
     }
 
     public void PauseGame()
@@ -80,15 +85,10 @@ public class PauseMenuUI : MonoBehaviour
 
     public void ResumeGame()
     {
-        isPaused = false;
-        Time.timeScale = 1f;
+        if (!isPaused)
+            return;
 
-        panelHistory.Clear();
-        SetAllPanelsInactive();
-        currentPanel = pausePanel;
-
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        RestoreGameState();
     }
 
     public void ShowPauseMenu()
@@ -123,6 +123,27 @@ public class PauseMenuUI : MonoBehaviour
         ShowPanel(panelHistory.Pop());
     }
 
+    public void ExitToMainMenu()
+    {
+        isPaused = false;
+        Time.timeScale = 1f;
+
+        panelHistory.Clear();
+        SetAllPanelsInactive();
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        if (SceneTransitionManager.Instance != null)
+        {
+            SceneTransitionManager.Instance.LoadMainMenu();
+        }
+        else
+        {
+            Debug.LogError("SceneTransitionManager not found.");
+        }
+    }
+
     private void OpenPanel(GameObject panel)
     {
         if (panel == null || panel == currentPanel)
@@ -145,6 +166,20 @@ public class PauseMenuUI : MonoBehaviour
         SetAllPanelsInactive();
         panel.SetActive(true);
         currentPanel = panel;
+    }
+
+    private void RestoreGameState()
+    {
+        isPaused = false;
+        Time.timeScale = 1f;
+
+        panelHistory.Clear();
+        SetAllPanelsInactive();
+
+        currentPanel = pausePanel;
+
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void SetAllPanelsInactive()

@@ -26,6 +26,9 @@ public class PlayerCameraController : MonoBehaviour
     [SerializeField] private float minCameraPitch = -15f;
     [SerializeField] private float maxCameraPitch = 65f;
 
+
+    [SerializeField] private PauseMenuUI pauseMenuUI;
+
     private PlayerInputComponent playerInput;
     private InputAction moveAction;
     private InputAction lookAction;
@@ -181,6 +184,14 @@ public class PlayerCameraController : MonoBehaviour
 
     private void HandleCursorLock()
     {
+        if (pauseMenuUI != null && pauseMenuUI.IsPaused)
+        {
+            if (cursorLocked)
+                SetCursorLocked(false);
+
+            return;
+        }
+
         if (cancelAction != null && cancelAction.WasPressedThisFrame())
         {
             SetCursorLocked(false);
