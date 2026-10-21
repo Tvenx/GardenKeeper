@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: "\u0434\u0435\u0440\u0435\u0432\u043E \u0442\u0435\u0441\u0442 \u0431\u0435\u0441\u043A\u043E\u043D\u0435\u0447\u043D\u0430\u044F
     1"
-  m_Shader: {fileID: 4800000, guid: ce067173176be6f45aadccfa04685773, type: 3}
+  m_Shader: {fileID: 4800000, guid: a184ad307ce8e36408dc5fac8a35e90e, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -45,7 +45,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 34fcd5c3eb895404fbe674025a6f6de6, type: 3}
+        m_Texture: {fileID: 2800000, guid: 91a0497eadf96cb4b8945184fbc283b7, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -82,7 +82,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.8037735, g: 0.11980766, b: 0.11980766, a: 1}
+    - _Color: {r: 0.5018867, g: 0, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

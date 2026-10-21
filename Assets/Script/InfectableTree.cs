@@ -301,6 +301,11 @@ public class InfectableTree : InteractableObject
         return canCollectBlood || canUseCandle;
     }
 
+    public override bool CanShowOutline(PlayerInventory inventory)
+    {
+        return isBleeding || base.CanShowOutline(inventory);
+    }
+
     public override void Interact(PlayerInventory inventory)
     {
         if (!CanInteract(inventory))

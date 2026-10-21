@@ -22,6 +22,11 @@ public abstract class InteractableObject : MonoBehaviour
 
     protected virtual bool CanShowInteractionPrompt => true;
 
+    public virtual bool CanShowOutline(PlayerInventory inventory)
+    {
+        return CanInteract(inventory);
+    }
+
     protected virtual void Awake()
     {
         if (quickOutline != null)

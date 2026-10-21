@@ -103,7 +103,7 @@ public class PlayerInteraction : MonoBehaviour
         // This is important when using a candle while looking at the statue.
         InteractableObject outlineTarget = null;
 
-        if (hitTarget != null && hitTarget.CanInteract(inventory))
+        if (hitTarget != null && hitTarget.CanShowOutline(inventory))
         {
             outlineTarget = hitTarget;
         }
@@ -118,7 +118,7 @@ public class PlayerInteraction : MonoBehaviour
             // Refresh immediately after the inventory or target changes.
             InteractableObject newOutlineTarget = null;
 
-            if (hitTarget != null && hitTarget.CanInteract(inventory))
+            if (hitTarget != null && hitTarget.CanShowOutline(inventory))
             {
                 newOutlineTarget = hitTarget;
             }
