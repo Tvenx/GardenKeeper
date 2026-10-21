@@ -3,6 +3,7 @@ Shader "Custom/PSXVertexJitterLight"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _AlphaTex ("Alpha Texture", 2D) = "white" {}
         _Color ("Color Tint", Color) = (1,1,1,1)
         
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
@@ -15,13 +16,14 @@ Shader "Custom/PSXVertexJitterLight"
 
     SubShader
     {
-        Tags { "RenderType"="Opaque" "LightMode"="ForwardBase" }
+        Tags { "RenderType"="Transparent" "Queue"="Transparent" "LightMode"="ForwardBase" }
         
         CGPROGRAM
-        #pragma surface surf Standard fullforwardshadows vertex:vert
+        #pragma surface surf Standard fullforwardshadows alpha:fade vertex:vert
         #pragma target 3.0
 
         sampler2D _MainTex;
+        sampler2D _AlphaTex;
         fixed4 _Color;
         half _Glossiness;
         half _Metallic;
@@ -33,6 +35,7 @@ Shader "Custom/PSXVertexJitterLight"
         struct Input
         {
             float2 uv_MainTex;
+            float2 uv_AlphaTex;
         };
 
         void vert (inout appdata_full v)
@@ -50,13 +53,14 @@ Shader "Custom/PSXVertexJitterLight"
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
             fixed4 tex = tex2D(_MainTex, IN.uv_MainTex);
+            fixed alpha = tex2D(_AlphaTex, IN.uv_AlphaTex).r;
             
             tex *= _Color;
 
             o.Albedo = tex.rgb;
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
-            o.Alpha = tex.a;
+            o.Alpha = tex.a * alpha;
         }
         ENDCG
     }
