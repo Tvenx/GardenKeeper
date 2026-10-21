@@ -98,7 +98,7 @@ public abstract class InteractableObject : MonoBehaviour
 
         if (!interactionPromptInitialized)
         {
-            interactionPromptInitialized = interactionPrompt.Initialize(transform);
+            interactionPromptInitialized = interactionPrompt.Initialize();
             if (!interactionPromptInitialized)
             {
                 return;

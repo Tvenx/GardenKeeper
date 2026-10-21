@@ -40,7 +40,7 @@ public class PlayerInteraction : MonoBehaviour
     public InteractableObject LookedAtInteractable =>
         lookedAtInteractable;
 
-    public string InteractionButtonDisplayName => "ЛКМ";
+    public string InteractionButtonDisplayName => "LMB";
 
     private void Awake()
     {

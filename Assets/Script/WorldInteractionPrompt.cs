@@ -12,15 +12,11 @@ public sealed class WorldInteractionPrompt : MonoBehaviour
     [SerializeField] private Text actionLabel;
     [SerializeField, Min(0.001f)] private float worldScale = 0.0035f;
 
-    private Transform target;
-    private Vector3 localAnchor;
     private Camera targetCamera;
     private bool isVisible;
 
-    public bool Initialize(Transform followTarget)
+    public bool Initialize()
     {
-        target = followTarget;
-
         if (visualRoot == null ||
             canvasRect == null ||
             canvasGroup == null ||
@@ -47,8 +43,6 @@ public sealed class WorldInteractionPrompt : MonoBehaviour
         SetWorldScale(worldScale * 0.92f);
         visualRoot.SetActive(false);
 
-        localAnchor = CalculateAnchor(target);
-        UpdateWorldPosition();
         return true;
     }
 
@@ -140,7 +134,6 @@ public sealed class WorldInteractionPrompt : MonoBehaviour
             return;
         }
 
-        UpdateWorldPosition();
         FaceCamera();
     }
 
@@ -186,18 +179,6 @@ public sealed class WorldInteractionPrompt : MonoBehaviour
         return Mathf.Abs(value) < 0.0001f ? 1f : value;
     }
 
-    private void UpdateWorldPosition()
-    {
-        if (visualRoot == null || target == null)
-        {
-            return;
-        }
-
-        float floatOffset = Mathf.Sin(Time.time * 1.6f) * 0.025f;
-        visualRoot.transform.position =
-            target.TransformPoint(localAnchor) + Vector3.up * floatOffset;
-    }
-
     private void FaceCamera()
     {
         if (visualRoot == null)
@@ -226,67 +207,5 @@ public sealed class WorldInteractionPrompt : MonoBehaviour
                 Vector3.up
             );
         }
-    }
-
-    private static Vector3 CalculateAnchor(Transform root)
-    {
-        if (root == null)
-        {
-            return Vector3.up * 1.8f;
-        }
-
-        Bounds bounds = new Bounds();
-        bool foundBounds = false;
-
-        Collider[] colliders = root.GetComponentsInChildren<Collider>();
-        foreach (Collider item in colliders)
-        {
-            if (item == null || !item.enabled)
-            {
-                continue;
-            }
-
-            if (!foundBounds)
-            {
-                bounds = item.bounds;
-                foundBounds = true;
-            }
-            else
-            {
-                bounds.Encapsulate(item.bounds);
-            }
-        }
-
-        if (!foundBounds)
-        {
-            Renderer[] renderers = root.GetComponentsInChildren<Renderer>();
-            foreach (Renderer item in renderers)
-            {
-                if (item == null || !item.enabled)
-                {
-                    continue;
-                }
-
-                if (!foundBounds)
-                {
-                    bounds = item.bounds;
-                    foundBounds = true;
-                }
-                else
-                {
-                    bounds.Encapsulate(item.bounds);
-                }
-            }
-        }
-
-        if (!foundBounds)
-        {
-            return Vector3.up * 1.8f;
-        }
-
-        Vector3 worldAnchor =
-            bounds.center + Vector3.up * (bounds.extents.y + 0.25f);
-
-        return root.InverseTransformPoint(worldAnchor);
     }
 }

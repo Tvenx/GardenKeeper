@@ -6,7 +6,7 @@ public class InfectableTree : InteractableObject
     public event System.Action<InfectableTree> BleedingStarted;
 
     protected override string InteractionPromptText =>
-        isBleeding ? "СОБРАТЬ КРОВЬ" : "ИСПОЛЬЗОВАТЬ СВЕЧУ";
+        isBleeding ? "Take blood" : "Use candle";
 
     protected override bool CanShowInteractionPrompt =>
         isBleeding ||
