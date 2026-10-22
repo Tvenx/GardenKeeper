@@ -35,7 +35,7 @@ public abstract class InteractableObject : MonoBehaviour
         }
 
         interactionPrompt = GetComponent<WorldInteractionPrompt>();
-        if (interactionPrompt == null)
+        /*if (interactionPrompt == null)
         {
             Debug.LogError(
                 $"{GetType().Name} on {name} needs a " +
@@ -43,7 +43,7 @@ public abstract class InteractableObject : MonoBehaviour
                 "assigned on the prefab.",
                 this
             );
-        }
+        }*/
     }
 
     public void SetOutline(bool visible)
