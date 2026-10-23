@@ -12,6 +12,7 @@ public enum GameDefeatReason
 public class GameDefeatManager : MonoBehaviour
 {
     [SerializeField] private GameObject gameOverPanel;
+    [SerializeField] private GameObject gameOverPanel2;
     [SerializeField] private TextMeshProUGUI reasonHint;
 
     public bool IsDefeated { get; private set; }
@@ -21,9 +22,9 @@ public class GameDefeatManager : MonoBehaviour
     public event Action<GameDefeatReason, string> DefeatTriggered;
 
     public bool TriggerDefeat(
-        GameDefeatReason reason,
-        string details = "",
-        UnityEngine.Object context = null)
+    GameDefeatReason reason,
+    string details = "",
+    UnityEngine.Object context = null)
     {
         if (IsDefeated)
         {
@@ -53,8 +54,24 @@ public class GameDefeatManager : MonoBehaviour
 
         DefeatTriggered?.Invoke(reason, details);
 
-        gameOverPanel.SetActive(true);
-        reasonHint.text = message;
+        // Выбираем панель в зависимости от причины поражения:
+        // заражение деревьев -> вторая панель, иначе -> первая.
+        bool useSecondPanel = reason == GameDefeatReason.ForestOverrun;
+
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(!useSecondPanel);
+        }
+
+        if (gameOverPanel2 != null)
+        {
+            gameOverPanel2.SetActive(useSecondPanel);
+        }
+
+        if (reasonHint != null)
+        {
+            reasonHint.text = message;
+        }
 
         return true;
     }
