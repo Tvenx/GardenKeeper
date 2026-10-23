@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
+
 public class MainMenuCharacterAnimation : MonoBehaviour
 {
     [Header("References")]
@@ -8,54 +9,109 @@ public class MainMenuCharacterAnimation : MonoBehaviour
 
     [Header("Animation States")]
     [SerializeField] private string walkRightState = "WalkRight";
-    [SerializeField] private string lookForwardState = "WalkForward";
-    [SerializeField] private string lookLeftState = "WalkLeft";
+    [SerializeField] private string walkLeftState = "WalkLeft";
+    [SerializeField] private string walkForwardState = "WalkForward";
+    [SerializeField] private string walkBackwardState = "WalkBackward";
 
-    [Header("Timing")]
-    [SerializeField] private float minWalkDuration = 5f;
-    [SerializeField] private float maxWalkDuration = 10f;
-    [SerializeField] private float lookDuration = 1f;
+    [Header("Movement Durations")]
+    [SerializeField, Min(0f)] private float walkRightDuration = 8f;
+    [SerializeField, Min(0f)] private float walkLeftDuration = 3f;
+    [SerializeField, Min(0f)] private float walkForwardDuration = 6f;
+    [SerializeField, Min(0f)] private float finalWalkLeftDuration = 2f;
 
     [Header("Transition")]
-    [SerializeField] private float transitionDuration = 0.2f;
+    [SerializeField, Min(0f)] private float transitionDuration = 0.2f;
 
     public bool IsWalking { get; private set; }
+
+    private Coroutine playRoutine;
 
     private void Awake()
     {
         if (animator == null)
             animator = GetComponentInChildren<Animator>();
+
+        if (animator == null)
+        {
+            Debug.LogError("CharacterAnimation: Animator not found.", this);
+            enabled = false;
+        }
     }
 
     private void OnEnable()
     {
-        StartCoroutine(PlayLoop());
+        playRoutine = StartCoroutine(PlayLoop());
+    }
+
+    private void OnDisable()
+    {
+        if (playRoutine != null)
+        {
+            StopCoroutine(playRoutine);
+            playRoutine = null;
+        }
+
+        IsWalking = false;
     }
 
     private IEnumerator PlayLoop()
     {
         while (true)
         {
-            // Идёт вправо
-            IsWalking = true;
-            PlayState(walkRightState);
-            yield return new WaitForSeconds(Random.Range(minWalkDuration, maxWalkDuration));
+            // 0–8 секунд — вправо
+            yield return PlayMovement(
+                walkRightState,
+                walkRightDuration
+            );
 
-            // Смотрит вперёд
-            IsWalking = false;
-            PlayState(lookForwardState);
-            yield return new WaitForSeconds(lookDuration);
+            // 8–11 секунд — влево
+            yield return PlayMovement(
+                walkLeftState,
+                walkLeftDuration
+            );
 
-            // Один раз смотрит влево
-            PlayState(lookLeftState);
-            yield return new WaitForSeconds(lookDuration);
+            // 11–17 секунд — вперёд
+            yield return PlayMovement(
+                walkForwardState,
+                walkForwardDuration
+            );
 
-            // Сразу снова идёт вправо
+            // 17–19 секунд — влево
+            yield return PlayMovement(
+                walkLeftState,
+                finalWalkLeftDuration
+            );
         }
     }
 
-    private void PlayState(string stateName)
+    private IEnumerator PlayMovement(string stateName, float duration)
     {
-        animator.CrossFadeInFixedTime(stateName, transitionDuration);
+        IsWalking = true;
+
+        bool forceTurnLeft =
+            stateName == walkLeftState &&
+            Mathf.Approximately(duration, finalWalkLeftDuration);
+
+        Transform characterModel = animator.transform;
+
+        animator.CrossFadeInFixedTime(
+            stateName,
+            transitionDuration
+        );
+
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            if (forceTurnLeft)
+            {
+                Vector3 rotation = characterModel.localEulerAngles;
+                rotation.y = 180f;
+                characterModel.localEulerAngles = rotation;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
     }
 }
