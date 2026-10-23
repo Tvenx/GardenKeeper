@@ -9,8 +9,14 @@ EditorBuildSettings:
     path: Assets/Scenes/Menu/MainMenu.unity
     guid: 35a3d690854b37a488e016bc47ae2d49
   - enabled: 1
+    path: Assets/Scenes/TutorialLevel.unity
+    guid: 508975bb277fac44ba17adbe8ae71d43
+  - enabled: 1
     path: Assets/Scenes/MainLevel.unity
     guid: bde569f6af8d4df49a256ae817bcd1bc
+  - enabled: 1
+    path: Assets/Scenes/WinCutScene.unity
+    guid: f2ed2bf16d3e1d74ba6035a7a0a05865
   - enabled: 1
     path: Assets/Scenes/Menu/PauseMenu.unity
     guid: 0a153c1012007d14ab157e2f160f7117

@@ -269,6 +269,15 @@ public class StatueCandleStation : InteractableObject
                 "YOU WIN! The statue has been filled with blood.",
                 this
             );
+
+            if (SceneTransitionManager.Instance != null)
+            {
+                SceneTransitionManager.Instance.LoadWinCutScene();
+            }
+            else
+            {
+                Debug.LogError("SceneTransitionManager not found.", this);
+            }
         }
     }
 }

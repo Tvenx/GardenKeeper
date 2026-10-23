@@ -10,6 +10,7 @@ public class SceneTransitionManager : MonoBehaviour
     [Header("Scene Names")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
     [SerializeField] private string gameSceneName = "Game";
+    [SerializeField] private string winCutSceneName = "WinCutScene";
 
     private bool isLoading;
 
@@ -35,6 +36,11 @@ public class SceneTransitionManager : MonoBehaviour
     public void LoadGame()
     {
         LoadScene(gameSceneName);
+    }
+
+    public void LoadWinCutScene()
+    {
+        LoadScene(winCutSceneName);
     }
 
     public void LoadScene(string sceneName)
