@@ -8,6 +8,8 @@ public class PlayerInteraction : MonoBehaviour
 {
     private static readonly int UseCandleStateHash =
         Animator.StringToHash("UseCandle");
+    private static readonly int UseBloodGlassStateHash =
+        Animator.StringToHash("UseBloodGlass");
 
     public static bool IsCandleAnimationPauseActive { get; private set; }
 
@@ -28,7 +30,8 @@ public class PlayerInteraction : MonoBehaviour
     private InteractableObject currentTarget;
     private PlayerInputComponent playerInput;
     private InputAction interactAction;
-    private bool candleAnimationHasStarted;
+    private bool interactionAnimationHasStarted;
+    private int interactionAnimationStateHash;
     private float previousTimeScale;
     private AnimatorUpdateMode previousAnimatorUpdateMode;
 
@@ -97,7 +100,7 @@ public class PlayerInteraction : MonoBehaviour
 
     private void Update()
     {
-        UpdateCandleAnimationPause();
+        UpdateInteractionAnimationPause();
 
         if (IsCandleAnimationPauseActive || Time.timeScale == 0f)
         {
@@ -211,7 +214,7 @@ public class PlayerInteraction : MonoBehaviour
                         return;
                     }
 
-                    BeginCandleAnimationPause();
+                    BeginInteractionAnimationPause(UseCandleStateHash);
                     animator.SetTrigger(UseCandleStateHash);
                 }
             }
@@ -223,22 +226,42 @@ public class PlayerInteraction : MonoBehaviour
         // With empty hands or blood, interact with an available target.
         if (hitTarget != null && hitTarget.CanInteract(inventory))
         {
+            bool isBloodOffering =
+                inventory.CurrentItem == InventoryItemType.Blood &&
+                hitTarget is StatueCandleStation;
+
             hitTarget.Interact(inventory);
+
+            if (isBloodOffering)
+            {
+                if (animator == null)
+                {
+                    Debug.LogError(
+                        "PlayerInteraction: Animator is missing.",
+                        this
+                    );
+                    return;
+                }
+
+                BeginInteractionAnimationPause(UseBloodGlassStateHash);
+                animator.SetTrigger(UseBloodGlassStateHash);
+            }
         }
     }
 
-    private void BeginCandleAnimationPause()
+    private void BeginInteractionAnimationPause(int animationStateHash)
     {
         previousTimeScale = Time.timeScale;
         previousAnimatorUpdateMode = animator.updateMode;
-        candleAnimationHasStarted = false;
+        interactionAnimationHasStarted = false;
+        interactionAnimationStateHash = animationStateHash;
         IsCandleAnimationPauseActive = true;
 
         animator.updateMode = AnimatorUpdateMode.UnscaledTime;
         Time.timeScale = 0f;
     }
 
-    private void UpdateCandleAnimationPause()
+    private void UpdateInteractionAnimationPause()
     {
         if (!IsCandleAnimationPauseActive)
         {
@@ -253,9 +276,9 @@ public class PlayerInteraction : MonoBehaviour
 
         AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
 
-        if (state.shortNameHash == UseCandleStateHash)
+        if (state.shortNameHash == interactionAnimationStateHash)
         {
-            candleAnimationHasStarted = true;
+            interactionAnimationHasStarted = true;
 
             if (state.normalizedTime >= 1f &&
                 !animator.IsInTransition(0))
@@ -263,7 +286,7 @@ public class PlayerInteraction : MonoBehaviour
                 EndCandleAnimationPause();
             }
         }
-        else if (candleAnimationHasStarted)
+        else if (interactionAnimationHasStarted)
         {
             EndCandleAnimationPause();
         }
@@ -283,7 +306,8 @@ public class PlayerInteraction : MonoBehaviour
 
         Time.timeScale = previousTimeScale;
         IsCandleAnimationPauseActive = false;
-        candleAnimationHasStarted = false;
+        interactionAnimationHasStarted = false;
+        interactionAnimationStateHash = 0;
     }
 
     public string GetCurrentActionDescription()
